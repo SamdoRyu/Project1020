@@ -15,6 +15,12 @@ public class MemberInputView {
         return scanner.nextLine().trim();
     }
 
+    // F-02 검색어 입력. 엔터만 누르면 빈 문자열(전체)
+    public String readSearchKeyword() {
+        System.out.print("이름 검색어(엔터: 전체)> ");
+        return scanner.nextLine().trim();
+    }
+
     // F-01 이름 입력. 빈 값·길이 초과는 안내 후 다시 입력 (NFR-06)
     // TODO NFR-06: InputUtil로 교체
     public String readName() {
@@ -40,7 +46,7 @@ public class MemberInputView {
             if (phone.isEmpty()) {
                 System.out.println("연락처를 입력해 주세요.");
             } else if (!PHONE.matcher(phone).matches()) {
-                System.out.println("연락처 형식이 올바르지 않습니다. 010-0000-0000 형식으로 입력해 주세요.");
+                System.out.println("연락처 형식이 올바르지 않습니다. 하이픈 추가해서 010-0000-0000 형식으로 입력해 주세요.");
             } else {
                 return phone;
             }
