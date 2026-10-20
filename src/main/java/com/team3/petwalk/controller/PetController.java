@@ -77,7 +77,19 @@ public class PetController {
     }
 
     // F-08 반려동물 삭제
-    private void delete() {
-        // TODO
+    private void delete() throws SQLException {
+        try {
+            int petId = inputView.readPetId();
+            petService.findById(petId);
+            if (!inputView.readDeleteConfirm()) {
+                outputView.printDeleteCanceled();
+                return;
+            }
+            petService.delete(petId);
+            outputView.printDeleted();
+        } catch (IllegalArgumentException e) {
+            // NFR-07: 없는 동물번호, 주문 이력 있음 안내 후 관리 메뉴로 복귀
+            outputView.printError(e.getMessage());
+        }
     }
 }

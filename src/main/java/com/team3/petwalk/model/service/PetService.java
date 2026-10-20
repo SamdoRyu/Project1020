@@ -40,6 +40,15 @@ public class PetService {
         }
     }
 
+    // F-08 반려동물 삭제: 존재 확인 → 주문 이력이 없을 때만 DELETE (BR-10)
+    public void delete(int petId) throws SQLException {
+        findById(petId);
+        if (petDAO.countOrders(petId) > 0) {
+            throw new IllegalArgumentException("산책 주문 이력이 있어 삭제할 수 없습니다.");
+        }
+        petDAO.delete(petId);
+    }
+
     // 무게 DECIMAL(4,1), 활동지수 1~5 (F-05, F-07)
     private void validateRange(PetDTO pet) {
         if (pet.getWeight().signum() <= 0 || pet.getWeight().stripTrailingZeros().scale() > 1) {
