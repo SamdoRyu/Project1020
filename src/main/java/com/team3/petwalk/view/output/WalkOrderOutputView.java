@@ -30,6 +30,11 @@ public class WalkOrderOutputView {
         System.out.println("데이터 처리 중 오류가 발생했습니다.");
     }
 
+    // NFR-07: 어떤 조건에 걸렸는지 안내
+    public void printError(String message) {
+        System.out.println(message);
+    }
+
     // F-14 조회 방식 선택
     public void printListMenu() {
         System.out.println("1) 전체  2) 상태별  3) 보호자별(회원번호)  4) 시터별(시터번호)");

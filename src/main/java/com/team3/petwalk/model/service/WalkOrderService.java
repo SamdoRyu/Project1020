@@ -9,6 +9,7 @@ import java.util.List;
 // (D) 업무 규칙(BR) 검사와 계산 담당. 입출력(Scanner, System.out)은 하지 않는다 (NFR-02)
 public class WalkOrderService {
     private final WalkOrderDAO walkOrderDAO = new WalkOrderDAO();
+    private final MemberService memberService = new MemberService();   // A 제공 (#7)
 
     // F-14 1. 전체
     public List<WalkOrderDTO> getOrderList() throws SQLException {
@@ -20,9 +21,11 @@ public class WalkOrderService {
         return walkOrderDAO.findByStatus(status);
     }
 
-    // F-14 3. 보호자별
-    // TODO F-14 [복귀]: A의 회원 존재 확인 메서드가 나오면, 없는 회원번호는 조회 전에 막는다
+    // F-14 3. 보호자별. 없는 회원번호면 안내 후 [복귀] (NFR-07)
     public List<WalkOrderDTO> getOrderListByGuardian(int memberId) throws SQLException {
+        if (!memberService.existsById(memberId)) {
+            throw new IllegalArgumentException("존재하지 않는 회원번호입니다.");
+        }
         return walkOrderDAO.findByGuardianId(memberId);
     }
 

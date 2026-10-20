@@ -28,6 +28,9 @@ public class WalkOrderController {
                     }
                     default -> outputView.printInvalidMenu();
                 }
+            } catch (IllegalArgumentException e) {
+                // NFR-07: 업무 규칙 위반은 걸린 조건을 안내하고 이 관리 메뉴로 복귀
+                outputView.printError(e.getMessage());
             } catch (SQLException e) {
                 // NFR-10: 안내 후 run()을 빠져나가 메인 메뉴로 복귀
                 outputView.printDbError();
