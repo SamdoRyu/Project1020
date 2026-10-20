@@ -1,5 +1,6 @@
 package com.team3.petwalk.controller;
 
+import com.team3.petwalk.model.dto.MemberDTO;
 import com.team3.petwalk.model.service.MemberService;
 import com.team3.petwalk.view.input.MemberInputView;
 import com.team3.petwalk.view.output.MemberOutputView;
@@ -41,18 +42,40 @@ public class MemberController {
     }
 
     // F-02 회원 목록·검색
-    private void list() {
-        // TODO
+    private void list() throws SQLException {
+        String keyword = inputView.readSearchKeyword();
+        outputView.printMembers(memberService.search(keyword));
     }
 
     // F-03 회원 수정
-    private void update() {
-        // TODO
+    private void update() throws SQLException {
+        int memberId = inputView.readMemberId();
+        try {
+            MemberDTO member = memberService.findById(memberId);
+            outputView.printMember(member);
+            String name = inputView.readNameOrKeep(member.getName());
+            String phone = inputView.readPhoneOrKeep(member.getPhone());
+            memberService.update(memberId, name, phone);
+            outputView.printMessage("수정되었습니다.");
+        } catch (IllegalArgumentException e) {
+            outputView.printMessage(e.getMessage()); // 없는 회원번호, BR-11 연락처 중복: 안내 후 복귀
+        }
     }
 
     // F-04 회원 삭제
-    private void delete() {
-        // TODO
+    private void delete() throws SQLException {
+        int memberId = inputView.readMemberId();
+        try {
+            outputView.printMember(memberService.findById(memberId));
+            if (!inputView.readDeleteConfirm()) {
+                outputView.printMessage("삭제를 취소했습니다.");
+                return;
+            }
+            memberService.delete(memberId);
+            outputView.printMessage("삭제되었습니다.");
+        } catch (IllegalArgumentException e) {
+            outputView.printMessage(e.getMessage()); // 없는 회원번호, BR-10 삭제 불가: 안내 후 복귀
+        }
     }
 
     // 메인 메뉴 5. 결제 통계 (A, 선택)
