@@ -62,4 +62,9 @@ public class SitterInputView {
     public int readMaxCapacity(int current) {
         return InputUtil.readIntOrKeep("최대수용량(1~3)> ", 1, 3, current);
     }
+
+    // F-12 삭제 확인
+    public boolean readDeleteConfirm() {
+        return InputUtil.readYesNo("정말 삭제하시겠습니까?(Y/N)> ");
+    }
 }

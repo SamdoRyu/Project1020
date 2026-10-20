@@ -86,7 +86,15 @@ public class SitterController {
     }
 
     // F-12 시터 삭제
-    private void delete() {
-        // TODO
+    private void delete() throws SQLException {
+        int sitterId = inputView.readSitterId();
+        sitterService.findById(sitterId);
+
+        if (!inputView.readDeleteConfirm()) {
+            outputView.printDeleteCanceled();
+            return;
+        }
+        sitterService.delete(sitterId);
+        outputView.printDeleted();
     }
 }
