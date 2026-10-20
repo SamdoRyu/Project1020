@@ -1,5 +1,6 @@
 package com.team3.petwalk.model.service;
 
+import com.team3.petwalk.common.OrderConstants;
 import com.team3.petwalk.model.dao.WalkOrderDAO;
 import com.team3.petwalk.model.dto.WalkOrderDTO;
 
@@ -10,6 +11,7 @@ import java.util.List;
 public class WalkOrderService {
     private final WalkOrderDAO walkOrderDAO = new WalkOrderDAO();
     private final MemberService memberService = new MemberService();   // A 제공 (#7)
+    private final SitterService sitterService = new SitterService();   // C 제공 (#12)
 
     // F-14 1. 전체
     public List<WalkOrderDTO> getOrderList() throws SQLException {
@@ -29,9 +31,9 @@ public class WalkOrderService {
         return walkOrderDAO.findByGuardianId(memberId);
     }
 
-    // F-14 4. 시터별
-    // TODO F-14 [복귀]: C의 시터 1명 조회 메서드가 나오면, 없는 시터번호는 조회 전에 막는다
+    // F-14 4. 시터별. 없는 시터번호면 SitterService가 안내 문구를 담아 던진다 → [복귀] (NFR-07)
     public List<WalkOrderDTO> getOrderListBySitter(int sitterId) throws SQLException {
+        sitterService.findById(sitterId);
         return walkOrderDAO.findBySitterId(sitterId);
     }
 
@@ -39,8 +41,7 @@ public class WalkOrderService {
     public int sumCompletedAmount(List<WalkOrderDTO> orderList) {
         int total = 0;
         for (WalkOrderDTO order : orderList) {
-            // TODO C의 상수 클래스가 나오면 '완료' 문자열을 상수로 교체
-            if ("완료".equals(order.getStatus()) && order.getAmount() != null) {
+            if (OrderConstants.STATUS_COMPLETED.equals(order.getStatus()) && order.getAmount() != null) {
                 total += order.getAmount();
             }
         }

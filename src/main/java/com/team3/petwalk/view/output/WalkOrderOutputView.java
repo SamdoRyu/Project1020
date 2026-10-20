@@ -1,13 +1,20 @@
 package com.team3.petwalk.view.output;
 
+import com.team3.petwalk.common.OutputUtil;
 import com.team3.petwalk.model.dto.WalkOrderDTO;
 
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 
+// 표 출력·공통 문구는 OutputUtil을 쓴다 (NFR-08)
 public class WalkOrderOutputView {
-    // TODO NFR-08: B의 OutputUtil이 나오면 금액·날짜 포맷과 표 정렬을 공통 출력으로 교체
+    // TODO NFR-08: OutputUtil에 금액·날짜 포맷이 생기면 formatWon·DATE_TIME을 교체
     private static final DateTimeFormatter DATE_TIME = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+
+    // NFR-09: 주문번호를 열 이름에 표기
+    private static final String[] ORDER_HEADERS =
+            {"주문번호", "산책일시", "반려동물", "보호자", "시터", "요금방식", "상태", "금액"};
 
     public void printMenu() {
         System.out.println("""
@@ -27,7 +34,7 @@ public class WalkOrderOutputView {
 
     // NFR-10
     public void printDbError() {
-        System.out.println("데이터 처리 중 오류가 발생했습니다.");
+        OutputUtil.printMessage(OutputUtil.DB_ERROR);
     }
 
     // NFR-07: 어떤 조건에 걸렸는지 안내
@@ -48,36 +55,27 @@ public class WalkOrderOutputView {
     // F-14 주문 목록 표 + 완료 주문 합계
     public void printOrderList(List<WalkOrderDTO> orderList, int completedTotal) {
         if (orderList.isEmpty()) {
-            System.out.println("조회 결과가 없습니다.");
+            OutputUtil.printMessage(OutputUtil.NO_RESULT);
             return;
         }
-        System.out.println(pad("주문번호", 8) + pad("산책일시", 18) + pad("반려동물", 10) + pad("보호자", 8)
-                + pad("시터", 8) + pad("요금방식", 9) + pad("상태", 7) + "금액");
+        List<String[]> rows = new ArrayList<>();
         for (WalkOrderDTO order : orderList) {
-            String amount = order.getAmount() == null ? "-" : formatWon(order.getAmount());
-            System.out.println(pad(String.valueOf(order.getOrderId()), 8)
-                    + pad(order.getWalkAt().format(DATE_TIME), 18)
-                    + pad(order.getPetName(), 10)
-                    + pad(order.getGuardianName(), 8)
-                    + pad(order.getSitterName(), 8)
-                    + pad(order.getFeeType(), 9)
-                    + pad(order.getStatus(), 7)
-                    + amount);
+            rows.add(new String[]{
+                    String.valueOf(order.getOrderId()),
+                    order.getWalkAt().format(DATE_TIME),
+                    order.getPetName(),
+                    order.getGuardianName(),
+                    order.getSitterName(),
+                    order.getFeeType(),
+                    order.getStatus(),
+                    order.getAmount() == null ? "-" : formatWon(order.getAmount())});
         }
+        OutputUtil.printTable(ORDER_HEADERS, rows);
         System.out.println("완료 주문 합계: " + formatWon(completedTotal));
     }
 
     // 금액: 천 단위 콤마 + 원 (NFR-08)
     private String formatWon(int amount) {
         return String.format("%,d원", amount);
-    }
-
-    // 한글은 콘솔에서 두 칸을 차지하므로 화면 너비 기준으로 공백을 채운다
-    private String pad(String text, int width) {
-        int displayWidth = 0;
-        for (char c : text.toCharArray()) {
-            displayWidth += (c >= '가' && c <= '힣') ? 2 : 1;
-        }
-        return text + " ".repeat(Math.max(1, width - displayWidth));
     }
 }
