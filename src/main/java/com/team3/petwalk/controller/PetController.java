@@ -6,6 +6,7 @@ import com.team3.petwalk.view.input.PetInputView;
 import com.team3.petwalk.view.output.PetOutputView;
 
 import java.sql.SQLException;
+import java.util.List;
 
 // (B) 관리 메뉴 흐름만 담당한다. 업무 규칙 판단은 Service에서 (NFR-02)
 public class PetController {
@@ -48,8 +49,17 @@ public class PetController {
     }
 
     // F-06 반려동물 목록 (1.전체 2.보호자별)
-    private void list() {
-        // TODO
+    private void list() throws SQLException {
+        int type = inputView.readListType();
+        try {
+            List<PetDTO> pets = (type == 1)
+                    ? petService.findAll()
+                    : petService.findByMemberId(inputView.readMemberId());
+            outputView.printList(pets);
+        } catch (IllegalArgumentException e) {
+            // NFR-07: 없는 회원번호 안내 후 관리 메뉴로 복귀
+            outputView.printError(e.getMessage());
+        }
     }
 
     // F-07 반려동물 수정

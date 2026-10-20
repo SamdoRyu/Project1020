@@ -21,4 +21,14 @@ public class PetInputView {
         int activityLevel = InputUtil.readInt("활동지수(1~5)> ", 1, 5);
         return new PetDTO(memberId, name, breed, weight, activityLevel);
     }
+
+    // F-06 목록 종류 (1.전체 2.보호자별)
+    public int readListType() {
+        return InputUtil.readInt("1) 전체  2) 보호자별 선택> ", 1, 2);
+    }
+
+    // F-06 보호자별 조회 회원번호 (NFR-09)
+    public int readMemberId() {
+        return InputUtil.readId("보호자 회원번호> ");
+    }
 }
