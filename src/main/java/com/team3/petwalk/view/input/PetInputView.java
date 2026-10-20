@@ -32,9 +32,14 @@ public class PetInputView {
         return InputUtil.readId("보호자 회원번호> ");
     }
 
-    // F-07 수정할 동물번호 (NFR-09)
+    // F-07 수정, F-08 삭제할 동물번호 (NFR-09)
     public int readPetId() {
         return InputUtil.readId("동물번호> ");
+    }
+
+    // F-08 삭제 확인
+    public boolean readDeleteConfirm() {
+        return InputUtil.readYesNo("정말 삭제하시겠습니까?(Y/N)> ");
     }
 
     // F-07 바꿀 값 입력. 엔터만 누르면 기존 값 유지, 보호자는 바꾸지 않는다

@@ -93,6 +93,31 @@ public class PetDAO {
         }
     }
 
+    // F-08 삭제 가능 여부 확인용 주문 수. 상태와 상관없이 전부 센다 (BR-10)
+    public int countOrders(int petId) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM walk_order WHERE pet_id = ?";
+
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, petId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                rs.next();
+                return rs.getInt(1);
+            }
+        }
+    }
+
+    // F-08 반려동물 삭제
+    public int delete(int petId) throws SQLException {
+        String sql = "DELETE FROM pet WHERE pet_id = ?";
+
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, petId);
+            return pstmt.executeUpdate();
+        }
+    }
+
     private List<PetDTO> toList(ResultSet rs) throws SQLException {
         List<PetDTO> pets = new ArrayList<>();
         while (rs.next()) {
