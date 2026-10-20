@@ -43,8 +43,15 @@ public class WalkOrderController {
     }
 
     // F-13 산책 주문 등록
-    private void register() {
-        // TODO
+    // 흐름: 동물번호·시터번호·산책일시·요금방식 입력 → Service 검증(1~5)·단가 복사·저장 → 주문번호 출력
+    private void register() throws SQLException {
+        int petId = inputView.readPetId();
+        int sitterId = inputView.readSitterId();
+        LocalDateTime walkAt = inputView.readWalkAt();
+        outputView.printFeeTypeMenu();
+        String feeType = inputView.readFeeType();
+        int orderId = walkOrderService.register(petId, sitterId, walkAt, feeType);
+        outputView.printRegistered(orderId);
     }
 
     // F-14 주문 목록 (1.전체 2.상태별 3.보호자별 4.시터별)

@@ -19,6 +19,30 @@ public class WalkOrderService {
     private final MemberService memberService = new MemberService();   // A 제공 (#7)
     private final SitterService sitterService = new SitterService();   // C 제공 (#12)
 
+    // F-13 산책 주문 등록. 1~5 중 걸린 조건을 안내하고 [복귀] (NFR-07). 반환값: 생성된 주문번호
+    public int register(int petId, int sitterId, LocalDateTime walkAt, String feeType) throws SQLException {
+        // TODO #10, #12: B·C 메서드가 나오면 연결
+        //   1. 반려동물·시터 존재 확인
+        //      PetDTO pet = petService.findById(petId);           → null이면 "존재하지 않는 동물번호입니다."
+        //      SitterDTO sitter = sitterService.findById(sitterId); → null이면 "존재하지 않는 시터번호입니다."
+        //   2. 시터가 제재 중이 아닌지 (BR-03)
+        //      sitterService.isSuspended(sitterId)                 → "제재 중인 시터입니다. (제재종료일: …)"
+        //   3. 시터의 회원번호 ≠ 반려동물의 보호자 회원번호 (BR-03)
+        //      sitter.getMemberId() == pet.getMemberId()           → "시터 본인의 반려동물은 주문할 수 없습니다."
+        //   4. 그 반려동물에 진행 중(대기·수행중) 주문이 없는지 (BR-04)
+        //      petService.hasActiveOrder(petId)                    → "이미 진행 중인 주문이 있는 반려동물입니다."
+
+        // 5. 산책일시는 현재 이후 (BR-03)
+        if (!walkAt.isAfter(LocalDateTime.now())) {
+            throw new IllegalArgumentException("산책일시는 현재 이후여야 합니다.");
+        }
+
+        // TODO #12: 6. 요금방식에 맞는 시터의 현재 단가를 주문에 복사해 대기 상태로 저장 (BR-02)
+        //   int appliedPrice = feeType.equals("거리") ? sitter.getPricePerKm() : sitter.getPricePerMin();
+        //   return walkOrderDAO.insert(petId, sitterId, walkAt, feeType, appliedPrice);
+        throw new IllegalStateException("주문 등록은 반려동물·시터 확인(#10, #12) 연결 후 사용할 수 있습니다.");
+    }
+
     // F-14 1. 전체
     public List<WalkOrderDTO> getOrderList() throws SQLException {
         return walkOrderDAO.findAll();

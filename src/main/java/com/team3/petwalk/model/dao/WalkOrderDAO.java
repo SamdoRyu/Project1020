@@ -9,6 +9,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -91,6 +92,24 @@ public class WalkOrderDAO {
             }
         }
         return orderList;
+    }
+
+    // F-13 주문 등록. 상태는 DB 기본값 '대기'. 생성된 주문번호를 돌려준다
+    public int insert(int petId, int sitterId, LocalDateTime walkAt, String feeType, int appliedPrice) throws SQLException {
+        String sql = "INSERT INTO walk_order (pet_id, sitter_id, walk_at, fee_type, applied_price) VALUES (?, ?, ?, ?, ?)";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            pstmt.setInt(1, petId);
+            pstmt.setInt(2, sitterId);
+            pstmt.setObject(3, walkAt);
+            pstmt.setString(4, feeType);
+            pstmt.setInt(5, appliedPrice);
+            pstmt.executeUpdate();
+            try (ResultSet rs = pstmt.getGeneratedKeys()) {
+                rs.next();
+                return rs.getInt(1);
+            }
+        }
     }
 
     // F-15·F-16 주문 1건 조회. 없으면 null

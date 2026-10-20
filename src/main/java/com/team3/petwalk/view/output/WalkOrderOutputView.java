@@ -43,6 +43,15 @@ public class WalkOrderOutputView {
         System.out.println(message);
     }
 
+    // F-13 요금방식 선택
+    public void printFeeTypeMenu() {
+        System.out.println("1) 거리  2) 시간");
+    }
+
+    public void printRegistered(int orderId) {
+        System.out.println("주문이 접수되었습니다. (주문번호: " + orderId + ")");
+    }
+
     // F-15 처리 선택
     public void printWalkActionMenu() {
         System.out.println("1) 시작  2) 완료");
