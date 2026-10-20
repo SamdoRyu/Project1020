@@ -1,5 +1,6 @@
 package com.team3.petwalk.view.output;
 
+import com.team3.petwalk.common.OutputUtil;
 import com.team3.petwalk.model.dto.MemberDTO;
 
 import java.time.format.DateTimeFormatter;
@@ -33,6 +34,24 @@ public class MemberOutputView {
     // 업무 규칙 위반 안내 (NFR-07)
     public void printMessage(String message) {
         System.out.println(message);
+    }
+
+    // F-17 통계 표. 번호 열 이름은 시터번호/회원번호로 구분한다 (NFR-09). 금액은 15,000원 형식 (NFR-08)
+    public void printStatistics(String idHeader, String nameHeader, String totalHeader,
+                                List<MemberDTO.StatisticsRow> rows) {
+        if (rows.isEmpty()) {
+            OutputUtil.printMessage(OutputUtil.NO_RESULT);
+            return;
+        }
+        List<String[]> cells = new ArrayList<>();
+        for (MemberDTO.StatisticsRow row : rows) {
+            cells.add(new String[]{
+                    String.valueOf(row.id()),
+                    row.name(),
+                    row.count() + "건",
+                    String.format("%,d원", row.total())});
+        }
+        OutputUtil.printTable(new String[]{idHeader, nameHeader, "완료 건수", totalHeader}, cells);
     }
 
     // F-03 수정 전 현재 값 출력

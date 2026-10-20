@@ -81,6 +81,50 @@ public class MemberDAO {
         }
     }
 
+    // F-17: 완료 주문을 시터별로 집계 (시터번호·이름·건수·수입 합계), 합계 큰 순
+    // 시터·주문 테이블을 읽기만 하는 집계라 이 DAO에 둔다 (읽기 전용, 팀 합의 필요)
+    public List<MemberDTO.StatisticsRow> sumBySitter(String status) throws SQLException {
+        String sql = "SELECT s.sitter_id AS id, m.name AS name, COUNT(*) AS cnt, SUM(o.amount) AS total "
+                + "FROM walk_order o "
+                + "JOIN sitter s ON o.sitter_id = s.sitter_id "
+                + "JOIN member m ON s.member_id = m.member_id "
+                + "WHERE o.status = ? "
+                + "GROUP BY s.sitter_id, m.name "
+                + "ORDER BY total DESC, s.sitter_id";
+        return queryStatistics(sql, status);
+    }
+
+    // F-17: 완료 주문을 보호자별로 집계 (회원번호·이름·건수·지출 합계), 합계 큰 순
+    // 보호자는 walk_order에 없고 pet을 통해 찾는다
+    public List<MemberDTO.StatisticsRow> sumByGuardian(String status) throws SQLException {
+        String sql = "SELECT m.member_id AS id, m.name AS name, COUNT(*) AS cnt, SUM(o.amount) AS total "
+                + "FROM walk_order o "
+                + "JOIN pet p ON o.pet_id = p.pet_id "
+                + "JOIN member m ON p.member_id = m.member_id "
+                + "WHERE o.status = ? "
+                + "GROUP BY m.member_id, m.name "
+                + "ORDER BY total DESC, m.member_id";
+        return queryStatistics(sql, status);
+    }
+
+    private List<MemberDTO.StatisticsRow> queryStatistics(String sql, String status) throws SQLException {
+        List<MemberDTO.StatisticsRow> rows = new ArrayList<>();
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, status);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    rows.add(new MemberDTO.StatisticsRow(
+                            rs.getInt("id"),
+                            rs.getString("name"),
+                            rs.getInt("cnt"),
+                            rs.getLong("total")));
+                }
+            }
+        }
+        return rows;
+    }
+
     // F-04: 회원 삭제
     public void delete(int memberId) throws SQLException {
         String sql = "DELETE FROM member WHERE member_id = ?";

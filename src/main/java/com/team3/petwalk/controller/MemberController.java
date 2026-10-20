@@ -79,7 +79,7 @@ public class MemberController {
     }
 
     // 메인 메뉴 5. 결제 통계 (A, 선택)
-    public void runStatistics() {
+    public void runStatistics() throws SQLException {
         while (true) {
             outputView.printStatisticsMenu();
             switch (inputView.readMenu()) {
@@ -94,12 +94,12 @@ public class MemberController {
     }
 
     // F-17 시터별 수입
-    private void sitterIncome() {
-        // TODO
+    private void sitterIncome() throws SQLException {
+        outputView.printStatistics("시터번호", "시터 이름", "수입 합계", memberService.sitterIncome());
     }
 
     // F-17 보호자별 지출
-    private void guardianExpense() {
-        // TODO
+    private void guardianExpense() throws SQLException {
+        outputView.printStatistics("회원번호", "보호자 이름", "지출 합계", memberService.guardianExpense());
     }
 }

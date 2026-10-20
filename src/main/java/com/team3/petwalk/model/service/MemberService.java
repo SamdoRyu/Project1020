@@ -1,5 +1,6 @@
 package com.team3.petwalk.model.service;
 
+import com.team3.petwalk.common.OrderConstants;
 import com.team3.petwalk.model.dao.MemberDAO;
 import com.team3.petwalk.model.dto.MemberDTO;
 
@@ -31,6 +32,16 @@ public class MemberService {
             throw new IllegalArgumentException("다른 회원이 이미 사용 중인 연락처입니다.");
         }
         memberDAO.update(memberId, name, phone);
+    }
+
+    // F-17: 완료 주문의 시터별 수입 (합계 큰 순)
+    public List<MemberDTO.StatisticsRow> sitterIncome() throws SQLException {
+        return memberDAO.sumBySitter(OrderConstants.STATUS_COMPLETED);
+    }
+
+    // F-17: 완료 주문의 보호자별 지출 (합계 큰 순)
+    public List<MemberDTO.StatisticsRow> guardianExpense() throws SQLException {
+        return memberDAO.sumByGuardian(OrderConstants.STATUS_COMPLETED);
     }
 
     // F-04, BR-10: 반려동물이나 시터 정보가 있는 회원은 삭제 불가 (IllegalArgumentException)
