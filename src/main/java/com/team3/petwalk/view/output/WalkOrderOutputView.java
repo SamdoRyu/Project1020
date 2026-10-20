@@ -3,6 +3,7 @@ package com.team3.petwalk.view.output;
 import com.team3.petwalk.common.OutputUtil;
 import com.team3.petwalk.model.dto.WalkOrderDTO;
 
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,6 +41,25 @@ public class WalkOrderOutputView {
     // NFR-07: 어떤 조건에 걸렸는지 안내
     public void printError(String message) {
         System.out.println(message);
+    }
+
+    // F-16 취소 주체 선택
+    public void printCanceledByMenu() {
+        System.out.println("1) 보호자  2) 시터");
+    }
+
+    public void printCanceled() {
+        System.out.println("취소되었습니다.");
+    }
+
+    public void printCancelStopped() {
+        System.out.println("취소하지 않았습니다.");
+    }
+
+    // F-16 시터 측 취소 시 제재 안내 (BR-06)
+    public void printSitterSuspended(String sitterName, int sitterId, LocalDateTime suspendedUntil) {
+        System.out.println("시터 " + sitterName + "(시터번호 " + sitterId + ")은 "
+                + suspendedUntil.format(DATE_TIME) + "까지 새 주문을 받을 수 없습니다.");
     }
 
     // F-14 조회 방식 선택

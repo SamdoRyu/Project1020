@@ -1,11 +1,13 @@
 package com.team3.petwalk.controller;
 
+import com.team3.petwalk.common.OrderConstants;
 import com.team3.petwalk.model.dto.WalkOrderDTO;
 import com.team3.petwalk.model.service.WalkOrderService;
 import com.team3.petwalk.view.input.WalkOrderInputView;
 import com.team3.petwalk.view.output.WalkOrderOutputView;
 
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.List;
 
 // (D) 관리 메뉴 흐름만 담당한다. 업무 규칙 판단은 Service에서 (NFR-02)
@@ -67,7 +69,22 @@ public class WalkOrderController {
     }
 
     // F-16 주문 취소 (1.보호자 2.시터), NFR-05 트랜잭션
-    private void cancel() {
-        // TODO
+    // 흐름: 주문번호 입력 → Service 취소 가능 확인 → 취소 주체·확인 입력 → Service 취소 → 결과 출력
+    private void cancel() throws SQLException {
+        WalkOrderDTO order = walkOrderService.getCancelableOrder(inputView.readOrderId());
+        outputView.printCanceledByMenu();
+        String canceledBy = inputView.readCanceledBy();
+        if (!inputView.readConfirm("주문번호 " + order.getOrderId() + "을(를) 취소하시겠습니까?")) {
+            outputView.printCancelStopped();
+            return;
+        }
+        if (OrderConstants.CANCELED_BY_SITTER.equals(canceledBy)) {
+            LocalDateTime suspendedUntil = walkOrderService.cancelBySitter(order.getOrderId(), order.getSitterId());
+            outputView.printCanceled();
+            outputView.printSitterSuspended(order.getSitterName(), order.getSitterId(), suspendedUntil);
+        } else {
+            walkOrderService.cancelByGuardian(order.getOrderId());
+            outputView.printCanceled();
+        }
     }
 }

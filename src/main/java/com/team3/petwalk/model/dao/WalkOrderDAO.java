@@ -1,6 +1,7 @@
 package com.team3.petwalk.model.dao;
 
 import com.team3.petwalk.common.DBUtil;
+import com.team3.petwalk.common.OrderConstants;
 import com.team3.petwalk.model.dto.WalkOrderDTO;
 
 import java.sql.Connection;
@@ -89,6 +90,30 @@ public class WalkOrderDAO {
             }
         }
         return orderList;
+    }
+
+    // F-15·F-16 주문 1건 조회. 없으면 null
+    public WalkOrderDTO findById(int orderId) throws SQLException {
+        String sql = SELECT_LIST + "WHERE o.order_id = ?";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, orderId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                return rs.next() ? toDTO(rs) : null;
+            }
+        }
+    }
+
+    // F-16 주문 취소: 상태 '취소' + 취소 주체 기록
+    // 트랜잭션(NFR-05)에 묶일 수 있도록 Connection을 받는다. conn을 닫거나 commit하는 것은 Service의 일
+    public int cancel(Connection conn, int orderId, String canceledBy) throws SQLException {
+        String sql = "UPDATE walk_order SET status = ?, canceled_by = ? WHERE order_id = ?";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, OrderConstants.STATUS_CANCELED);
+            pstmt.setString(2, canceledBy);
+            pstmt.setInt(3, orderId);
+            return pstmt.executeUpdate();
+        }
     }
 
     // ResultSet 한 행 → DTO. NULL 가능 컬럼은 getInt 대신 getObject (getInt는 NULL을 0으로 바꿈)
