@@ -1,6 +1,13 @@
--- 반려동물 산책 매칭 서비스 스키마
--- STEP 3(DB 모델링) 완료 후 CREATE TABLE 문을 작성합니다.
--- 처음부터 다시 실행해도 오류가 없도록 작성합니다.
+-- ---------------------------------------------------------
+-- 회원 (A)
+-- ---------------------------------------------------------
+CREATE TABLE member (
+                        member_id   INT          AUTO_INCREMENT PRIMARY KEY COMMENT '회원번호',
+                        name        VARCHAR(20)  NOT NULL                   COMMENT '이름',
+                        phone       VARCHAR(13)  NOT NULL                   COMMENT '연락처 010-0000-0000',
+                        created_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '가입일시',
+                        CONSTRAINT uq_member_phone UNIQUE (phone),
+                        CONSTRAINT chk_member_phone CHECK (phone REGEXP '^010-[0-9]{4}-[0-9]{4}$')
+    ) COMMENT '회원';
 
-CREATE DATABASE IF NOT EXISTS pet_walk DEFAULT CHARACTER SET utf8mb4;
-USE pet_walk;
+-- ---------------------------------------------------------
