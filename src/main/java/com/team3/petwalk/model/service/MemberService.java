@@ -12,4 +12,12 @@ public class MemberService {
     public boolean existsById(int memberId) throws SQLException {
         return memberDAO.existsById(memberId);
     }
+
+    // F-01, BR-11: 연락처가 중복이면 IllegalArgumentException(안내 문구 포함), 아니면 새 회원번호
+    public int register(String name, String phone) throws SQLException {
+        if (memberDAO.existsByPhone(phone)) {
+            throw new IllegalArgumentException("이미 등록된 연락처입니다.");
+        }
+        return memberDAO.insert(name, phone);
+    }
 }

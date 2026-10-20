@@ -3,6 +3,8 @@ package com.team3.petwalk.controller;
 import com.team3.petwalk.view.input.MainInputView;
 import com.team3.petwalk.view.output.MainOutputView;
 
+import java.sql.SQLException;
+
 // 메인 메뉴 분기만 담당한다 (NFR-02)
 public class MainController {
     private final MainInputView inputView = new MainInputView();
@@ -16,18 +18,21 @@ public class MainController {
     public void run() {
         while (true) {
             outputView.printMenu();
-            // TODO NFR-10: DB 오류 시 "데이터 처리 중 오류가 발생했습니다." 출력 후 이 메뉴로 복귀
-            switch (inputView.readMenu()) {
-                case "1" -> memberController.run();           // 회원 관리 (A)
-                case "2" -> petController.run();              // 반려동물 관리 (B)
-                case "3" -> sitterController.run();           // 시터 관리 (C)
-                case "4" -> walkOrderController.run();        // 주문·결제 관리 (D)
-                case "5" -> memberController.runStatistics(); // 결제 통계 F-17 (A, 선택)
-                case "0" -> {
-                    outputView.printExit();
-                    return;
+            try {
+                switch (inputView.readMenu()) {
+                    case "1" -> memberController.run();           // 회원 관리 (A)
+                    case "2" -> petController.run();              // 반려동물 관리 (B)
+                    case "3" -> sitterController.run();           // 시터 관리 (C)
+                    case "4" -> walkOrderController.run();        // 주문·결제 관리 (D)
+                    case "5" -> memberController.runStatistics(); // 결제 통계 F-17 (A, 선택)
+                    case "0" -> {
+                        outputView.printExit();
+                        return;
+                    }
+                    default -> outputView.printInvalidMenu();
                 }
-                default -> outputView.printInvalidMenu();
+            } catch (SQLException e) {
+                outputView.printDbError(); // NFR-10: 메인 메뉴로 복귀
             }
         }
     }

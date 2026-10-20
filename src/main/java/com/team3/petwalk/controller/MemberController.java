@@ -1,14 +1,18 @@
 package com.team3.petwalk.controller;
 
+import com.team3.petwalk.model.service.MemberService;
 import com.team3.petwalk.view.input.MemberInputView;
 import com.team3.petwalk.view.output.MemberOutputView;
+
+import java.sql.SQLException;
 
 // (A) 관리 메뉴 흐름만 담당한다. 업무 규칙 판단은 Service에서 (NFR-02)
 public class MemberController {
     private final MemberInputView inputView = new MemberInputView();
     private final MemberOutputView outputView = new MemberOutputView();
+    private final MemberService memberService = new MemberService();
 
-    public void run() {
+    public void run() throws SQLException {
         while (true) {
             outputView.printMenu();
             switch (inputView.readMenu()) {
@@ -25,8 +29,15 @@ public class MemberController {
     }
 
     // F-01 회원 등록
-    private void register() {
-        // TODO
+    private void register() throws SQLException {
+        String name = inputView.readName();
+        String phone = inputView.readPhone();
+        try {
+            int memberId = memberService.register(name, phone);
+            outputView.printRegistered(memberId);
+        } catch (IllegalArgumentException e) {
+            outputView.printMessage(e.getMessage()); // BR-11 연락처 중복: 안내 후 회원 관리 메뉴로 복귀
+        }
     }
 
     // F-02 회원 목록·검색
