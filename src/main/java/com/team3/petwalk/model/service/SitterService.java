@@ -1,6 +1,7 @@
 package com.team3.petwalk.model.service;
 
 import com.team3.petwalk.common.OrderConstants;
+import com.team3.petwalk.model.dao.MemberDAO;
 import com.team3.petwalk.model.dao.SitterDAO;
 import com.team3.petwalk.model.dto.SitterDTO;
 
@@ -12,6 +13,24 @@ import java.time.LocalDateTime;
 // 팀 공통: Controller는 IllegalArgumentException을 잡아 안내 후 관리 메뉴로 복귀한다
 public class SitterService {
     private final SitterDAO sitterDAO = new SitterDAO();
+    // MemberService는 SitterService를 필드로 갖고 있어 서로 new 하면 무한 순환(StackOverflowError) → A의 DAO를 직접 사용
+    private final MemberDAO memberDAO = new MemberDAO();
+
+    // F-09 등록 전 확인. 회원번호만 먼저 받아 바로 검사한다
+    public void checkRegistrable(int memberId) throws SQLException {
+        // #7 A의 회원 존재 확인. member 테이블 SQL은 직접 쓰지 않는다
+        if (!memberDAO.existsById(memberId)) {
+            throw new IllegalArgumentException("존재하지 않는 회원번호입니다.");
+        }
+        if (sitterDAO.existsByMemberId(memberId)) {
+            throw new IllegalArgumentException("이미 시터로 등록된 회원입니다.");
+        }
+    }
+
+    // F-09 저장 후 새 시터번호 반환
+    public int register(SitterDTO sitter) throws SQLException {
+        return sitterDAO.insert(sitter);
+    }
 
     // 시터 1명 조회 (단가·제재종료일·회원번호·이름·최대수용량). 없으면 예외
     // 사용처: F-11, F-12, F-13, F-14, F-15, F-16
