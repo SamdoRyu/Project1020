@@ -3,6 +3,7 @@ out/
 bin/
 target/
 build/
+.gradle/
 *.class
 
 # IDE 설정
