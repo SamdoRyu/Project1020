@@ -8,7 +8,8 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 
-// (C) 시터 업무 규칙 검사. 규칙 위반은 걸린 조건을 메시지로 담아 IllegalStateException을 던진다 (NFR-07)
+// (C) 시터 업무 규칙 검사. 규칙 위반은 걸린 조건을 메시지로 담아 IllegalArgumentException을 던진다 (NFR-07)
+// 팀 공통: Controller는 IllegalArgumentException을 잡아 안내 후 관리 메뉴로 복귀한다
 public class SitterService {
     private final SitterDAO sitterDAO = new SitterDAO();
 
@@ -17,7 +18,7 @@ public class SitterService {
     public SitterDTO findById(int sitterId) throws SQLException {
         SitterDTO sitter = sitterDAO.findById(sitterId);
         if (sitter == null) {
-            throw new IllegalStateException("존재하지 않는 시터번호입니다.");
+            throw new IllegalArgumentException("존재하지 않는 시터번호입니다.");
         }
         return sitter;
     }
