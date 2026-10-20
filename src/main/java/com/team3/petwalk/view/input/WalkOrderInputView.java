@@ -12,6 +12,8 @@ public class WalkOrderInputView {
             OrderConstants.STATUS_WAITING, OrderConstants.STATUS_IN_PROGRESS,
             OrderConstants.STATUS_COMPLETED, OrderConstants.STATUS_CANCELED};
 
+    private static final BigDecimal MAX_DISTANCE_KM = new BigDecimal("999.99");
+
     // 메뉴 번호 입력. 검증 없이 문자열로 돌려주고, 없는 번호는 Controller switch의 default에서 처리
     public String readMenu() {
         return InputUtil.readLine("선택> ");
@@ -66,20 +68,14 @@ public class WalkOrderInputView {
     }
 
     // F-15 실측거리(km): 0보다 크고, 소수 둘째 자리까지, 최대 999.99 (DECIMAL(5,2))
+    // InputUtil에는 최댓값 검사가 없어서 999.99 초과만 여기서 다시 묻는다 (넘으면 DB Out of range 오류)
     public BigDecimal readDistanceKm() {
         while (true) {
-            System.out.print("실측거리(km)> ");
-            String input = scanner.nextLine().trim();
-            try {
-                BigDecimal distance = new BigDecimal(input);
-                if (distance.signum() > 0 && distance.scale() <= 2
-                        && distance.compareTo(new BigDecimal("999.99")) <= 0) {
-                    return distance;
-                }
-            } catch (NumberFormatException ignored) {
-                // 아래 안내 후 다시 입력
+            BigDecimal distance = InputUtil.readPositiveDecimal("실측거리(km)> ", 2);
+            if (distance.compareTo(MAX_DISTANCE_KM) <= 0) {
+                return distance;
             }
-            System.out.println("0보다 큰 숫자를 소수 둘째 자리까지 입력해 주세요. (최대 999.99)");
+            System.out.println("999.99 이하로 입력해 주세요.");
         }
     }
 

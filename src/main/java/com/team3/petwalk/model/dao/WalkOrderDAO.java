@@ -122,8 +122,7 @@ public class WalkOrderDAO {
         String sql = "UPDATE walk_order SET status = ? WHERE order_id = ?";
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            // TODO C의 상수 클래스가 나오면 '수행중' 문자열을 상수로 교체
-            pstmt.setString(1, "수행중");
+            pstmt.setString(1, OrderConstants.STATUS_IN_PROGRESS);
             pstmt.setInt(2, orderId);
             return pstmt.executeUpdate();
         }
@@ -138,8 +137,7 @@ public class WalkOrderDAO {
                 """;
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            // TODO C의 상수 클래스가 나오면 '완료' 문자열을 상수로 교체
-            pstmt.setString(1, "완료");
+            pstmt.setString(1, OrderConstants.STATUS_COMPLETED);
             pstmt.setBigDecimal(2, distanceKm);
             pstmt.setInt(3, durationMin);
             pstmt.setInt(4, amount);
