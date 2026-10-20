@@ -1,0 +1,21 @@
+# 빌드 결과물
+out/
+bin/
+target/
+build/
+*.class
+
+# IDE 설정
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+
+# OS 생성 파일
+.DS_Store
+Thumbs.db
+
+# DB 접속 정보 (비밀번호 포함) - 절대 커밋 금지
+db.properties
