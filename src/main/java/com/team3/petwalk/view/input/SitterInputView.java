@@ -10,6 +10,11 @@ public class SitterInputView {
         return InputUtil.readLine("선택> ");
     }
 
+    // F-10 1) 전체 2) 매칭 가능 시터만
+    public int readListOption() {
+        return InputUtil.readInt("1) 전체  2) 매칭 가능 시터만> ", 1, 2);
+    }
+
     // 회원번호와 시터번호는 다른 값이므로 안내 문구에서 구분한다 (NFR-09)
     public int readMemberId() {
         return InputUtil.readId("회원번호> ");

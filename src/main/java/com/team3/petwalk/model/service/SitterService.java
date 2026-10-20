@@ -8,6 +8,7 @@ import com.team3.petwalk.model.dto.SitterDTO;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
+import java.util.List;
 
 // (C) 시터 업무 규칙 검사. 규칙 위반은 걸린 조건을 메시지로 담아 IllegalArgumentException을 던진다 (NFR-07)
 // 팀 공통: Controller는 IllegalArgumentException을 잡아 안내 후 관리 메뉴로 복귀한다
@@ -30,6 +31,16 @@ public class SitterService {
     // F-09 저장 후 새 시터번호 반환
     public int register(SitterDTO sitter) throws SQLException {
         return sitterDAO.insert(sitter);
+    }
+
+    // F-10
+    public List<SitterDTO> findAll() throws SQLException {
+        return sitterDAO.findAll();
+    }
+
+    // F-10
+    public List<SitterDTO> findAvailable() throws SQLException {
+        return sitterDAO.findAvailable();
     }
 
     // 시터 1명 조회 (단가·제재종료일·회원번호·이름·최대수용량). 없으면 예외
