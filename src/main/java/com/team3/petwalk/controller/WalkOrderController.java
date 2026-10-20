@@ -6,6 +6,7 @@ import com.team3.petwalk.model.service.WalkOrderService;
 import com.team3.petwalk.view.input.WalkOrderInputView;
 import com.team3.petwalk.view.output.WalkOrderOutputView;
 
+import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -64,8 +65,21 @@ public class WalkOrderController {
     }
 
     // F-15 산책 시작·완료 (1.시작 2.완료)
-    private void startOrComplete() {
-        // TODO
+    // 흐름: 주문번호 입력 → Service 주문 확인 → 시작: Service 상태·수용량 확인 후 변경
+    //                                        → 완료: Service 상태 확인 → 실측값 입력 → Service 요금 계산·변경
+    private void startOrComplete() throws SQLException {
+        WalkOrderDTO order = walkOrderService.getOrder(inputView.readOrderId());
+        outputView.printWalkActionMenu();
+        if (inputView.readWalkAction() == 1) {
+            walkOrderService.start(order);
+            outputView.printStarted();
+        } else {
+            walkOrderService.checkCompletable(order);   // 실측값을 입력받기 전에 상태부터 확인
+            BigDecimal distanceKm = inputView.readDistanceKm();
+            int durationMin = inputView.readDurationMin();
+            int amount = walkOrderService.complete(order, distanceKm, durationMin);
+            outputView.printCompleted(amount);
+        }
     }
 
     // F-16 주문 취소 (1.보호자 2.시터), NFR-05 트랜잭션

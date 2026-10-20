@@ -4,6 +4,7 @@ import com.team3.petwalk.common.DBUtil;
 import com.team3.petwalk.common.OrderConstants;
 import com.team3.petwalk.model.dto.WalkOrderDTO;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -112,6 +113,37 @@ public class WalkOrderDAO {
             pstmt.setString(1, OrderConstants.STATUS_CANCELED);
             pstmt.setString(2, canceledBy);
             pstmt.setInt(3, orderId);
+            return pstmt.executeUpdate();
+        }
+    }
+
+    // F-15 산책 시작: 상태 '수행중'
+    public int start(int orderId) throws SQLException {
+        String sql = "UPDATE walk_order SET status = ? WHERE order_id = ?";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            // TODO C의 상수 클래스가 나오면 '수행중' 문자열을 상수로 교체
+            pstmt.setString(1, "수행중");
+            pstmt.setInt(2, orderId);
+            return pstmt.executeUpdate();
+        }
+    }
+
+    // F-15 산책 완료: 실측값·금액·결제일시·완료 상태를 한 번에 UPDATE (BR-08)
+    public int complete(int orderId, BigDecimal distanceKm, int durationMin, int amount) throws SQLException {
+        String sql = """
+                UPDATE walk_order
+                SET status = ?, distance_km = ?, duration_min = ?, amount = ?, paid_at = NOW()
+                WHERE order_id = ?
+                """;
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            // TODO C의 상수 클래스가 나오면 '완료' 문자열을 상수로 교체
+            pstmt.setString(1, "완료");
+            pstmt.setBigDecimal(2, distanceKm);
+            pstmt.setInt(3, durationMin);
+            pstmt.setInt(4, amount);
+            pstmt.setInt(5, orderId);
             return pstmt.executeUpdate();
         }
     }

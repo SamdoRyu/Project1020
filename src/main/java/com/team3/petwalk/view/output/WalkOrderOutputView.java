@@ -43,6 +43,19 @@ public class WalkOrderOutputView {
         System.out.println(message);
     }
 
+    // F-15 처리 선택
+    public void printWalkActionMenu() {
+        System.out.println("1) 시작  2) 완료");
+    }
+
+    public void printStarted() {
+        System.out.println("산책을 시작합니다.");
+    }
+
+    public void printCompleted(int amount) {
+        System.out.println("산책 완료. 결제 금액: " + formatWon(amount));
+    }
+
     // F-16 취소 주체 선택
     public void printCanceledByMenu() {
         System.out.println("1) 보호자  2) 시터");

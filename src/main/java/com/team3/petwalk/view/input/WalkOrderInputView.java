@@ -3,6 +3,8 @@ package com.team3.petwalk.view.input;
 import com.team3.petwalk.common.InputUtil;
 import com.team3.petwalk.common.OrderConstants;
 
+import java.math.BigDecimal;
+
 // 입력은 공통 InputUtil을 쓴다. Scanner는 InputUtil의 하나만 공유 (NFR-06, #8)
 public class WalkOrderInputView {
 
@@ -56,6 +58,34 @@ public class WalkOrderInputView {
             }
             System.out.println("Y 또는 N을 입력해 주세요.");
         }
+    }
+
+    // F-15 처리 선택 (1.시작 2.완료)
+    public int readWalkAction() {
+        return readNumberInRange("처리> ", 1, 2);
+    }
+
+    // F-15 실측거리(km): 0보다 크고, 소수 둘째 자리까지, 최대 999.99 (DECIMAL(5,2))
+    public BigDecimal readDistanceKm() {
+        while (true) {
+            System.out.print("실측거리(km)> ");
+            String input = scanner.nextLine().trim();
+            try {
+                BigDecimal distance = new BigDecimal(input);
+                if (distance.signum() > 0 && distance.scale() <= 2
+                        && distance.compareTo(new BigDecimal("999.99")) <= 0) {
+                    return distance;
+                }
+            } catch (NumberFormatException ignored) {
+                // 아래 안내 후 다시 입력
+            }
+            System.out.println("0보다 큰 숫자를 소수 둘째 자리까지 입력해 주세요. (최대 999.99)");
+        }
+    }
+
+    // F-15 실측시간(분)
+    public int readDurationMin() {
+        return readPositiveNumber("실측시간(분)> ");
     }
 
     // 형식 오류(숫자 아님, 범위 밖)는 안내 후 그 항목만 다시 입력받는다 (NFR-06)
