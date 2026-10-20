@@ -15,6 +15,23 @@ public class MemberService {
         return memberDAO.existsById(memberId);
     }
 
+    // F-03: 회원번호로 조회. 없으면 IllegalArgumentException(안내 문구 포함)
+    public MemberDTO findById(int memberId) throws SQLException {
+        MemberDTO member = memberDAO.findById(memberId);
+        if (member == null) {
+            throw new IllegalArgumentException("존재하지 않는 회원번호입니다.");
+        }
+        return member;
+    }
+
+    // F-03, BR-11: 본인을 제외하고 연락처가 중복이면 IllegalArgumentException
+    public void update(int memberId, String name, String phone) throws SQLException {
+        if (memberDAO.existsByPhoneExcept(phone, memberId)) {
+            throw new IllegalArgumentException("다른 회원이 이미 사용 중인 연락처입니다.");
+        }
+        memberDAO.update(memberId, name, phone);
+    }
+
     // F-02: 이름 검색어로 회원 목록 조회. 빈 검색어는 전체
     public List<MemberDTO> search(String keyword) throws SQLException {
         return memberDAO.findByName(keyword);

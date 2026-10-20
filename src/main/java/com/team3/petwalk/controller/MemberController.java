@@ -1,5 +1,6 @@
 package com.team3.petwalk.controller;
 
+import com.team3.petwalk.model.dto.MemberDTO;
 import com.team3.petwalk.model.service.MemberService;
 import com.team3.petwalk.view.input.MemberInputView;
 import com.team3.petwalk.view.output.MemberOutputView;
@@ -47,8 +48,18 @@ public class MemberController {
     }
 
     // F-03 회원 수정
-    private void update() {
-        // TODO
+    private void update() throws SQLException {
+        int memberId = inputView.readMemberId();
+        try {
+            MemberDTO member = memberService.findById(memberId);
+            outputView.printMember(member);
+            String name = inputView.readNameOrKeep(member.getName());
+            String phone = inputView.readPhoneOrKeep(member.getPhone());
+            memberService.update(memberId, name, phone);
+            outputView.printMessage("수정되었습니다.");
+        } catch (IllegalArgumentException e) {
+            outputView.printMessage(e.getMessage()); // 없는 회원번호, BR-11 연락처 중복: 안내 후 복귀
+        }
     }
 
     // F-04 회원 삭제
