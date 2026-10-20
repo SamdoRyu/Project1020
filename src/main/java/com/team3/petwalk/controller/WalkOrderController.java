@@ -1,5 +1,6 @@
 package com.team3.petwalk.controller;
 
+import com.team3.petwalk.common.OrderConstants;
 import com.team3.petwalk.model.dto.WalkOrderDTO;
 import com.team3.petwalk.model.service.WalkOrderService;
 import com.team3.petwalk.view.input.WalkOrderInputView;
@@ -77,7 +78,7 @@ public class WalkOrderController {
             outputView.printCancelStopped();
             return;
         }
-        if (canceledBy.equals("시터")) {
+        if (OrderConstants.CANCELED_BY_SITTER.equals(canceledBy)) {
             LocalDateTime suspendedUntil = walkOrderService.cancelBySitter(order.getOrderId(), order.getSitterId());
             outputView.printCanceled();
             outputView.printSitterSuspended(order.getSitterName(), order.getSitterId(), suspendedUntil);

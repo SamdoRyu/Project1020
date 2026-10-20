@@ -57,8 +57,8 @@ public class WalkOrderService {
         if (order == null) {
             throw new IllegalArgumentException("존재하지 않는 주문번호입니다.");
         }
-        // BR-05: 취소는 대기에서만. TODO C의 상수 클래스가 나오면 '대기' 문자열을 상수로 교체
-        if (!"대기".equals(order.getStatus())) {
+        // BR-05: 취소는 대기에서만
+        if (!OrderConstants.STATUS_WAITING.equals(order.getStatus())) {
             throw new IllegalArgumentException("대기 상태인 주문만 취소할 수 있습니다. (현재 상태: " + order.getStatus() + ")");
         }
         return order;
@@ -67,7 +67,7 @@ public class WalkOrderService {
     // F-16 보호자 측 취소: 제재 없음 (BR-06)
     public void cancelByGuardian(int orderId) throws SQLException {
         try (Connection conn = DBUtil.getConnection()) {
-            walkOrderDAO.cancel(conn, orderId, "보호자");
+            walkOrderDAO.cancel(conn, orderId, OrderConstants.CANCELED_BY_OWNER);
         }
     }
 
@@ -77,16 +77,15 @@ public class WalkOrderService {
         try (Connection conn = DBUtil.getConnection()) {
             conn.setAutoCommit(false);
             try {
-                walkOrderDAO.cancel(conn, orderId, "시터");
-                // TODO #12: C의 제재종료일 변경 메서드가 나오면 아래 throw를 지우고 연결
-                //   LocalDateTime suspendedUntil = sitterService.extendSuspension(conn, sitterId);
-                //   conn.commit();
-                //   return suspendedUntil;
-                throw new IllegalStateException("시터 측 취소는 시터 제재 기능(#12) 연결 후 사용할 수 있습니다.");
+                walkOrderDAO.cancel(conn, orderId, OrderConstants.CANCELED_BY_SITTER);
+                sitterService.suspend(conn, sitterId);   // C 제공 (#12): 현재 + 3일, 기존이 더 늦으면 유지
+                conn.commit();
             } catch (SQLException | RuntimeException e) {
-                conn.rollback();   // 주문 UPDATE까지 되돌린다
+                conn.rollback();   // 둘 중 하나라도 실패하면 주문 UPDATE까지 되돌린다
                 throw e;
             }
         }
+        // suspend()는 반환값이 없으므로 커밋된 제재종료일을 다시 읽어 출력에 쓴다
+        return sitterService.findById(sitterId).getSuspendedUntil();
     }
 }

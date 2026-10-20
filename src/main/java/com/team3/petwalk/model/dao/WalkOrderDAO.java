@@ -1,6 +1,7 @@
 package com.team3.petwalk.model.dao;
 
 import com.team3.petwalk.common.DBUtil;
+import com.team3.petwalk.common.OrderConstants;
 import com.team3.petwalk.model.dto.WalkOrderDTO;
 
 import java.sql.Connection;
@@ -108,8 +109,7 @@ public class WalkOrderDAO {
     public int cancel(Connection conn, int orderId, String canceledBy) throws SQLException {
         String sql = "UPDATE walk_order SET status = ?, canceled_by = ? WHERE order_id = ?";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            // TODO C의 상수 클래스가 나오면 '취소' 문자열을 상수로 교체
-            pstmt.setString(1, "취소");
+            pstmt.setString(1, OrderConstants.STATUS_CANCELED);
             pstmt.setString(2, canceledBy);
             pstmt.setInt(3, orderId);
             return pstmt.executeUpdate();

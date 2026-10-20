@@ -41,16 +41,16 @@ public class WalkOrderInputView {
     }
 
     // F-16 취소 주체: 번호를 받아 '보호자' / '시터'로 돌려준다
-    // TODO C의 상수 클래스가 나오면 취소 주체 문자열을 상수로 교체
     public String readCanceledBy() {
-        return readNumberInRange("취소 주체> ", 1, 2) == 1 ? "보호자" : "시터";
+        return readNumberInRange("취소 주체> ", 1, 2) == 1
+                ? OrderConstants.CANCELED_BY_OWNER : OrderConstants.CANCELED_BY_SITTER;
     }
 
     // 확인(Y/N). Y면 true
+    // TODO NFR-06: InputUtil에 Y/N 입력이 생기면 교체
     public boolean readConfirm(String prompt) {
         while (true) {
-            System.out.print(prompt + " (Y/N)> ");
-            String input = scanner.nextLine().trim().toUpperCase();
+            String input = InputUtil.readLine(prompt + " (Y/N)> ").toUpperCase();
             if (input.equals("Y") || input.equals("N")) {
                 return input.equals("Y");
             }
