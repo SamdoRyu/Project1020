@@ -41,4 +41,14 @@ public class PetService {
         }
         return petDAO.findByMemberId(memberId);
     }
+
+    // 진행 중(대기·수행중) 주문이 있으면 true. 사용처: F-13 주문 등록 (BR-04 반려동물당 진행 중 주문 1건)
+    public boolean hasActiveOrder(int petId) throws SQLException {
+        return petDAO.countActiveOrders(petId) > 0;
+    }
+
+    // 회원의 반려동물 수. 사용처: F-04 회원 삭제 가능 여부 (BR-10)
+    public int countByMemberId(int memberId) throws SQLException {
+        return petDAO.countByMemberId(memberId);
+    }
 }
