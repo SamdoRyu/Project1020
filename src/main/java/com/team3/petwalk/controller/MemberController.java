@@ -41,8 +41,9 @@ public class MemberController {
     }
 
     // F-02 회원 목록·검색
-    private void list() {
-        // TODO
+    private void list() throws SQLException {
+        String keyword = inputView.readSearchKeyword();
+        outputView.printMembers(memberService.search(keyword));
     }
 
     // F-03 회원 수정
