@@ -1,10 +1,13 @@
 package com.team3.petwalk.model.service;
 
+import com.team3.petwalk.common.DBUtil;
 import com.team3.petwalk.common.OrderConstants;
 import com.team3.petwalk.model.dao.WalkOrderDAO;
 import com.team3.petwalk.model.dto.WalkOrderDTO;
 
+import java.sql.Connection;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.List;
 
 // (D) 업무 규칙(BR) 검사와 계산 담당. 입출력(Scanner, System.out)은 하지 않는다 (NFR-02)
@@ -46,5 +49,44 @@ public class WalkOrderService {
             }
         }
         return total;
+    }
+
+    // F-16 취소할 주문 확인. 걸리면 안내 문구를 담아 던지고, Controller가 출력 후 관리 메뉴로 복귀 (NFR-07)
+    public WalkOrderDTO getCancelableOrder(int orderId) throws SQLException {
+        WalkOrderDTO order = walkOrderDAO.findById(orderId);
+        if (order == null) {
+            throw new IllegalArgumentException("존재하지 않는 주문번호입니다.");
+        }
+        // BR-05: 취소는 대기에서만. TODO C의 상수 클래스가 나오면 '대기' 문자열을 상수로 교체
+        if (!"대기".equals(order.getStatus())) {
+            throw new IllegalArgumentException("대기 상태인 주문만 취소할 수 있습니다. (현재 상태: " + order.getStatus() + ")");
+        }
+        return order;
+    }
+
+    // F-16 보호자 측 취소: 제재 없음 (BR-06)
+    public void cancelByGuardian(int orderId) throws SQLException {
+        try (Connection conn = DBUtil.getConnection()) {
+            walkOrderDAO.cancel(conn, orderId, "보호자");
+        }
+    }
+
+    // F-16 시터 측 취소: 주문 UPDATE + 시터 제재 UPDATE를 한 트랜잭션으로 (NFR-05, BR-06)
+    // 반환값: 바뀐 제재종료일 (출력용)
+    public LocalDateTime cancelBySitter(int orderId, int sitterId) throws SQLException {
+        try (Connection conn = DBUtil.getConnection()) {
+            conn.setAutoCommit(false);
+            try {
+                walkOrderDAO.cancel(conn, orderId, "시터");
+                // TODO #12: C의 제재종료일 변경 메서드가 나오면 아래 throw를 지우고 연결
+                //   LocalDateTime suspendedUntil = sitterService.extendSuspension(conn, sitterId);
+                //   conn.commit();
+                //   return suspendedUntil;
+                throw new IllegalStateException("시터 측 취소는 시터 제재 기능(#12) 연결 후 사용할 수 있습니다.");
+            } catch (SQLException | RuntimeException e) {
+                conn.rollback();   // 주문 UPDATE까지 되돌린다
+                throw e;
+            }
+        }
     }
 }

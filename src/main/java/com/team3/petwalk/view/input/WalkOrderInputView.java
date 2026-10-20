@@ -35,6 +35,29 @@ public class WalkOrderInputView {
         return readPositiveNumber("시터번호> ");
     }
 
+    // F-15·F-16 (NFR-09: 주문번호로 표기)
+    public int readOrderId() {
+        return readPositiveNumber("주문번호> ");
+    }
+
+    // F-16 취소 주체: 번호를 받아 '보호자' / '시터'로 돌려준다
+    // TODO C의 상수 클래스가 나오면 취소 주체 문자열을 상수로 교체
+    public String readCanceledBy() {
+        return readNumberInRange("취소 주체> ", 1, 2) == 1 ? "보호자" : "시터";
+    }
+
+    // 확인(Y/N). Y면 true
+    public boolean readConfirm(String prompt) {
+        while (true) {
+            System.out.print(prompt + " (Y/N)> ");
+            String input = scanner.nextLine().trim().toUpperCase();
+            if (input.equals("Y") || input.equals("N")) {
+                return input.equals("Y");
+            }
+            System.out.println("Y 또는 N을 입력해 주세요.");
+        }
+    }
+
     // 형식 오류(숫자 아님, 범위 밖)는 안내 후 그 항목만 다시 입력받는다 (NFR-06)
     private int readNumberInRange(String prompt, int min, int max) {
         return InputUtil.readInt(prompt, min, max);
