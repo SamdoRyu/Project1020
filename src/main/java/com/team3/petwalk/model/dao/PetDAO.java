@@ -1,6 +1,7 @@
 package com.team3.petwalk.model.dao;
 
 import com.team3.petwalk.common.DBUtil;
+import com.team3.petwalk.common.OrderConstants;
 import com.team3.petwalk.model.dto.PetDTO;
 
 import java.sql.Connection;
@@ -63,6 +64,35 @@ public class PetDAO {
         }
     }
 
+    // 반려동물 1마리 조회 (보호자 회원번호 포함). 없으면 null (F-07, 다른 팀원 제공용)
+    public PetDTO findById(int petId) throws SQLException {
+        String sql = SELECT_WITH_MEMBER + "WHERE p.pet_id = ?";
+
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, petId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                List<PetDTO> pets = toList(rs);
+                return pets.isEmpty() ? null : pets.get(0);
+            }
+        }
+    }
+
+    // F-07 반려동물 수정. 보호자(member_id)는 바꾸지 않는다
+    public int update(PetDTO pet) throws SQLException {
+        String sql = "UPDATE pet SET name = ?, breed = ?, weight = ?, activity_level = ? WHERE pet_id = ?";
+
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, pet.getName());
+            pstmt.setString(2, pet.getBreed());
+            pstmt.setBigDecimal(3, pet.getWeight());
+            pstmt.setInt(4, pet.getActivityLevel());
+            pstmt.setInt(5, pet.getPetId());
+            return pstmt.executeUpdate();
+        }
+    }
+
     private List<PetDTO> toList(ResultSet rs) throws SQLException {
         List<PetDTO> pets = new ArrayList<>();
         while (rs.next()) {
@@ -76,5 +106,35 @@ public class PetDAO {
                     rs.getString("member_name")));
         }
         return pets;
+    }
+
+    // 반려동물의 진행 중(대기·수행중) 주문 수 (F-13 BR-04, 다른 팀원 제공용)
+    public int countActiveOrders(int petId) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM walk_order WHERE pet_id = ? AND status IN (?, ?)";
+
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, petId);
+            pstmt.setString(2, OrderConstants.STATUS_WAITING);
+            pstmt.setString(3, OrderConstants.STATUS_IN_PROGRESS);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                rs.next();
+                return rs.getInt(1);
+            }
+        }
+    }
+
+    // 회원의 반려동물 수 (F-04 BR-10, 다른 팀원 제공용)
+    public int countByMemberId(int memberId) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM pet WHERE member_id = ?";
+
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, memberId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                rs.next();
+                return rs.getInt(1);
+            }
+        }
     }
 }

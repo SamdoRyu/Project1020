@@ -63,8 +63,17 @@ public class PetController {
     }
 
     // F-07 반려동물 수정
-    private void update() {
-        // TODO
+    private void update() throws SQLException {
+        try {
+            PetDTO current = petService.findById(inputView.readPetId());
+            outputView.printCurrent(current);
+            PetDTO changed = inputView.readUpdateInfo(current);
+            petService.update(changed);
+            outputView.printUpdated();
+        } catch (IllegalArgumentException e) {
+            // NFR-07: 없는 동물번호 안내 후 관리 메뉴로 복귀
+            outputView.printError(e.getMessage());
+        }
     }
 
     // F-08 반려동물 삭제

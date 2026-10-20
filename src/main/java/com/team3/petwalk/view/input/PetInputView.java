@@ -31,4 +31,20 @@ public class PetInputView {
     public int readMemberId() {
         return InputUtil.readId("보호자 회원번호> ");
     }
+
+    // F-07 수정할 동물번호 (NFR-09)
+    public int readPetId() {
+        return InputUtil.readId("동물번호> ");
+    }
+
+    // F-07 바꿀 값 입력. 엔터만 누르면 기존 값 유지, 보호자는 바꾸지 않는다
+    public PetDTO readUpdateInfo(PetDTO current) {
+        System.out.println("바꿀 값을 입력하세요. (엔터 시 기존 값 유지)");
+        String name = InputUtil.readStringOrKeep("이름> ", current.getName());
+        String breed = InputUtil.readStringOrKeep("견종> ", current.getBreed());
+        BigDecimal weight = InputUtil.readPositiveDecimalOrKeep("무게(kg, 소수 첫째 자리까지)> ", 1, current.getWeight());
+        int activityLevel = InputUtil.readIntOrKeep("활동지수(1~5)> ", 1, 5, current.getActivityLevel());
+        return new PetDTO(current.getPetId(), current.getMemberId(), name, breed, weight, activityLevel,
+                current.getMemberName());
+    }
 }
