@@ -1,4 +1,4 @@
 -- 시연용 샘플 데이터 (테이블마다 5행 이상)
--- schema.sql 실행 후 이 파일을 실행합니다.
+-- schema.sql 실행 후 이 파일을 실행합니다. 부모 테이블 데이터부터 넣습니다.
 
-USE petwalk;
+USE pet_walk;
