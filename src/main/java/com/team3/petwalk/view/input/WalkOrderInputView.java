@@ -53,10 +53,10 @@ public class WalkOrderInputView {
     }
 
     // F-13 산책일시. 없는 날짜(2월 30일 등)도 형식 오류로 본다
+    // TODO NFR-06: InputUtil에 날짜 입력이 생기면 교체
     public LocalDateTime readWalkAt() {
         while (true) {
-            System.out.print("산책일시(yyyy-MM-dd HH:mm)> ");
-            String input = scanner.nextLine().trim();
+            String input = InputUtil.readLine("산책일시(yyyy-MM-dd HH:mm)> ");
             try {
                 return LocalDateTime.parse(input, WALK_AT_FORMAT);
             } catch (DateTimeParseException e) {
@@ -66,9 +66,9 @@ public class WalkOrderInputView {
     }
 
     // F-13 요금방식: 번호를 받아 '거리' / '시간'으로 돌려준다
-    // TODO C의 상수 클래스가 나오면 요금방식 문자열을 상수로 교체
     public String readFeeType() {
-        return readNumberInRange("요금방식> ", 1, 2) == 1 ? "거리" : "시간";
+        return readNumberInRange("요금방식> ", 1, 2) == 1
+                ? OrderConstants.FEE_TYPE_DISTANCE : OrderConstants.FEE_TYPE_TIME;
     }
 
     // F-15·F-16 (NFR-09: 주문번호로 표기)
