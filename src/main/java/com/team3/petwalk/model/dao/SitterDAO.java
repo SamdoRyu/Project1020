@@ -7,6 +7,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.time.LocalDateTime;
 
 // (C) sitter 테이블 SQL만 실행한다. 업무 규칙 판단은 Service에서 (NFR-02)
@@ -28,6 +29,27 @@ public class SitterDAO {
             pstmt.setInt(1, memberId);
             try (ResultSet rs = pstmt.executeQuery()) {
                 return rs.next();
+            }
+        }
+    }
+
+    // F-09 저장 후 새로 만들어진 시터번호를 돌려준다. suspended_until은 기본값 NULL
+    public int insert(SitterDTO sitter) throws SQLException {
+        String sql = """
+                INSERT INTO sitter (member_id, price_per_km, price_per_min, certified, max_capacity)
+                VALUES (?, ?, ?, ?, ?)
+                """;
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            pstmt.setInt(1, sitter.getMemberId());
+            pstmt.setInt(2, sitter.getPricePerKm());
+            pstmt.setInt(3, sitter.getPricePerMin());
+            pstmt.setBoolean(4, sitter.isCertified());
+            pstmt.setInt(5, sitter.getMaxCapacity());
+            pstmt.executeUpdate();
+            try (ResultSet rs = pstmt.getGeneratedKeys()) {
+                rs.next();
+                return rs.getInt(1);
             }
         }
     }
