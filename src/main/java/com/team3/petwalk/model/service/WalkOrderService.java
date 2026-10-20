@@ -1,10 +1,13 @@
 package com.team3.petwalk.model.service;
 
 import com.team3.petwalk.common.DBUtil;
+import com.team3.petwalk.common.FeeCalculator;
 import com.team3.petwalk.common.OrderConstants;
 import com.team3.petwalk.model.dao.WalkOrderDAO;
+import com.team3.petwalk.model.dto.SitterDTO;
 import com.team3.petwalk.model.dto.WalkOrderDTO;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
@@ -87,5 +90,43 @@ public class WalkOrderService {
         }
         // suspend()는 반환값이 없으므로 커밋된 제재종료일을 다시 읽어 출력에 쓴다
         return sitterService.findById(sitterId).getSuspendedUntil();
+    }
+
+    // F-15 주문 확인. 없는 주문번호면 [복귀] (NFR-07)
+    public WalkOrderDTO getOrder(int orderId) throws SQLException {
+        WalkOrderDTO order = walkOrderDAO.findById(orderId);
+        if (order == null) {
+            throw new IllegalArgumentException("존재하지 않는 주문번호입니다.");
+        }
+        return order;
+    }
+
+    // F-15 산책 시작: 대기 → 수행중 (BR-05). 산책일시와는 비교하지 않는다
+    public void start(WalkOrderDTO order) throws SQLException {
+        if (!OrderConstants.STATUS_WAITING.equals(order.getStatus())) {
+            throw new IllegalArgumentException("대기 상태인 주문만 시작할 수 있습니다. (현재 상태: " + order.getStatus() + ")");
+        }
+        // BR-07: 시터의 수행중 주문 수 < 최대수용량일 때만 시작 (C 제공 #12)
+        SitterDTO sitter = sitterService.findById(order.getSitterId());
+        if (sitterService.countInProgressOrders(order.getSitterId()) >= sitter.getMaxCapacity()) {
+            throw new IllegalArgumentException("시터의 수행중 주문이 최대수용량(" + sitter.getMaxCapacity() + "건)에 도달해 시작할 수 없습니다.");
+        }
+        walkOrderDAO.start(order.getOrderId());
+    }
+
+    // F-15 완료할 수 있는 주문인지: 수행중 → 완료만 가능 (BR-05). 실측값 입력 전에 확인한다
+    public void checkCompletable(WalkOrderDTO order) {
+        if (!OrderConstants.STATUS_IN_PROGRESS.equals(order.getStatus())) {
+            throw new IllegalArgumentException("수행중인 주문만 완료할 수 있습니다. (현재 상태: " + order.getStatus() + ")");
+        }
+    }
+
+    // F-15 산책 완료: 요금방식 쪽 실측값으로 요금 계산 (BR-01) 후 한 번에 UPDATE. 반환값: 결제 금액
+    public int complete(WalkOrderDTO order, BigDecimal distanceKm, int durationMin) throws SQLException {
+        checkCompletable(order);
+        // 단가는 시터의 현재 단가가 아니라 주문에 복사된 applied_price (BR-02). C 제공 #11
+        int amount = FeeCalculator.calculate(order.getFeeType(), distanceKm, durationMin, order.getAppliedPrice());
+        walkOrderDAO.complete(order.getOrderId(), distanceKm, durationMin, amount);
+        return amount;
     }
 }
