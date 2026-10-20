@@ -61,6 +61,14 @@ public class SitterOutputView {
         OutputUtil.printMessage("제재가 해제되었습니다.");
     }
 
+    public void printDeleted() {
+        OutputUtil.printMessage("삭제되었습니다.");
+    }
+
+    public void printDeleteCanceled() {
+        OutputUtil.printMessage("삭제를 취소했습니다.");
+    }
+
     // 업무 규칙 위반 안내 (NFR-07)
     public void printError(String message) {
         OutputUtil.printMessage(message);

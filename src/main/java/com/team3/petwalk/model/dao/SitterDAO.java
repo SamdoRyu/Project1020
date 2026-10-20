@@ -108,6 +108,29 @@ public class SitterDAO {
         }
     }
 
+    // F-12 삭제 가능 여부 확인용 주문 수. 상태와 상관없이 전부 센다 (BR-10)
+    public int countOrders(int sitterId) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM walk_order WHERE sitter_id = ?";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, sitterId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                rs.next();
+                return rs.getInt(1);
+            }
+        }
+    }
+
+    // F-12 삭제
+    public int delete(int sitterId) throws SQLException {
+        String sql = "DELETE FROM sitter WHERE sitter_id = ?";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, sitterId);
+            return pstmt.executeUpdate();
+        }
+    }
+
     // 시터의 특정 상태 주문 수 (F-15 수행중 주문 수, BR-07)
     public int countOrdersByStatus(int sitterId, String status) throws SQLException {
         String sql = "SELECT COUNT(*) FROM walk_order WHERE sitter_id = ? AND status = ?";

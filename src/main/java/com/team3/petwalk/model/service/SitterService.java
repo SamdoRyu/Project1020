@@ -67,6 +67,15 @@ public class SitterService {
         sitterDAO.clearSuspension(sitterId);
     }
 
+    // F-12 주문 이력이 없을 때만 삭제 (BR-10)
+    public void delete(int sitterId) throws SQLException {
+        findById(sitterId);
+        if (sitterDAO.countOrders(sitterId) > 0) {
+            throw new IllegalArgumentException("주문 이력이 있어 삭제할 수 없습니다.");
+        }
+        sitterDAO.delete(sitterId);
+    }
+
     // 제재 중 = 제재종료일이 현재보다 뒤. F-10 매칭 가능 조건의 반대
     // 사용처: F-11 제재 해제(BR-09), F-13 주문 등록 시 제재 검사(BR-03)
     public boolean isSuspended(SitterDTO sitter) {
