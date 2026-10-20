@@ -28,7 +28,7 @@
 ```
 docs/   기획서, ERD
 sql/    schema.sql(CREATE), sample-data.sql(INSERT)
-src/    Java 소스 (MVC)
+src/main/java/com/team3/petwalk/   Java 소스 (MVC)
 ```
 
 ## 브랜치 규칙
