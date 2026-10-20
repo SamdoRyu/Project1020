@@ -81,6 +81,16 @@ public class MemberDAO {
         }
     }
 
+    // F-04: 회원 삭제
+    public void delete(int memberId) throws SQLException {
+        String sql = "DELETE FROM member WHERE member_id = ?";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, memberId);
+            pstmt.executeUpdate();
+        }
+    }
+
     // F-02: 이름에 검색어가 포함된 회원 목록. 검색어가 빈 문자열이면 전체 (LIKE '%%')
     public List<MemberDTO> findByName(String keyword) throws SQLException {
         String sql = "SELECT member_id, name, phone, created_at FROM member "

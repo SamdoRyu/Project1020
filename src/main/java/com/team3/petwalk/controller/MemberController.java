@@ -63,8 +63,19 @@ public class MemberController {
     }
 
     // F-04 회원 삭제
-    private void delete() {
-        // TODO
+    private void delete() throws SQLException {
+        int memberId = inputView.readMemberId();
+        try {
+            outputView.printMember(memberService.findById(memberId));
+            if (!inputView.readDeleteConfirm()) {
+                outputView.printMessage("삭제를 취소했습니다.");
+                return;
+            }
+            memberService.delete(memberId);
+            outputView.printMessage("삭제되었습니다.");
+        } catch (IllegalArgumentException e) {
+            outputView.printMessage(e.getMessage()); // 없는 회원번호, BR-10 삭제 불가: 안내 후 복귀
+        }
     }
 
     // 메인 메뉴 5. 결제 통계 (A, 선택)

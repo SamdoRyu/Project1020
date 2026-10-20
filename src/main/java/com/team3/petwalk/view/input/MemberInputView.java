@@ -1,5 +1,7 @@
 package com.team3.petwalk.view.input;
 
+import com.team3.petwalk.common.InputUtil;
+
 import java.util.Scanner;
 import java.util.regex.Pattern;
 
@@ -62,6 +64,20 @@ public class MemberInputView {
                 return phone;
             }
             System.out.println("연락처 형식이 올바르지 않습니다. 하이픈 추가해서 010-0000-0000 형식으로 입력해 주세요.");
+        }
+    }
+
+    // F-04 삭제 확인. Y/N(대소문자 무관) 외에는 안내 후 다시 입력 (NFR-06)
+    public boolean readDeleteConfirm() {
+        while (true) {
+            String answer = InputUtil.readLine("정말 삭제하시겠습니까? (Y/N)> ");
+            if (answer.equalsIgnoreCase("Y")) {
+                return true;
+            }
+            if (answer.equalsIgnoreCase("N")) {
+                return false;
+            }
+            System.out.println("Y 또는 N으로 입력해 주세요.");
         }
     }
 

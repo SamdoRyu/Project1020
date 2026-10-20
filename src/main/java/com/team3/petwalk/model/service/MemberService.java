@@ -8,6 +8,7 @@ import java.util.List;
 
 public class MemberService {
     private final MemberDAO memberDAO = new MemberDAO();
+    private final SitterService sitterService = new SitterService();
 
     // 회원번호가 존재하면 true. SQLException은 각 Controller가 받아 NFR-10 안내를 출력한다
     // (F-05, F-06, F-09, F-14에서 사용)
@@ -30,6 +31,17 @@ public class MemberService {
             throw new IllegalArgumentException("다른 회원이 이미 사용 중인 연락처입니다.");
         }
         memberDAO.update(memberId, name, phone);
+    }
+
+    // F-04, BR-10: 반려동물이나 시터 정보가 있는 회원은 삭제 불가 (IllegalArgumentException)
+    public void delete(int memberId) throws SQLException {
+        findById(memberId);
+        // PetService가 MemberService를 필드로 가지므로, 순환 생성을 피하려고 여기서만 만든다
+        boolean hasPet = !new PetService().findByMemberId(memberId).isEmpty();
+        if (hasPet || sitterService.isSitter(memberId)) {
+            throw new IllegalArgumentException("반려동물 또는 시터 정보가 있어 삭제할 수 없습니다.");
+        }
+        memberDAO.delete(memberId);
     }
 
     // F-02: 이름 검색어로 회원 목록 조회. 빈 검색어는 전체
