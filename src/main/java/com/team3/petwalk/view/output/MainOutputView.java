@@ -19,6 +19,10 @@ public class MainOutputView {
         System.out.println("메뉴 번호를 다시 입력해 주세요.");
     }
 
+    public void printDbError() {
+        System.out.println("데이터 처리 중 오류가 발생했습니다.");
+    }
+
     public void printExit() {
         System.out.println("프로그램을 종료합니다.");
     }

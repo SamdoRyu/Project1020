@@ -18,6 +18,16 @@ public class MemberOutputView {
         System.out.println("메뉴 번호를 다시 입력해 주세요.");
     }
 
+    // F-01 등록 결과
+    public void printRegistered(int memberId) {
+        System.out.println("회원이 등록되었습니다. (회원번호: " + memberId + ")");
+    }
+
+    // 업무 규칙 위반 안내 (NFR-07)
+    public void printMessage(String message) {
+        System.out.println(message);
+    }
+
     public void printStatisticsMenu() {
         System.out.println("""
 
