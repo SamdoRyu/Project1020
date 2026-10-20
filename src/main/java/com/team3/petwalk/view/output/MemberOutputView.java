@@ -35,6 +35,13 @@ public class MemberOutputView {
         System.out.println(message);
     }
 
+    // F-03 수정 전 현재 값 출력
+    public void printMember(MemberDTO member) {
+        System.out.println("현재 값 - 회원번호: " + member.getMemberId()
+                + ", 이름: " + member.getName()
+                + ", 연락처: " + member.getPhone());
+    }
+
     // F-02 회원 목록 표. 결과가 없으면 안내 문구 (NFR-08)
     // TODO NFR-08: B의 OutputUtil이 나오면 공통 표 출력·날짜 형식으로 교체
     public void printMembers(List<MemberDTO> members) {

@@ -15,6 +15,56 @@ public class MemberInputView {
         return scanner.nextLine().trim();
     }
 
+    // F-03 회원번호 입력. 숫자가 아니거나 1 미만이면 안내 후 다시 입력 (NFR-06, NFR-09)
+    // TODO NFR-06: InputUtil로 교체
+    public int readMemberId() {
+        while (true) {
+            System.out.print("회원번호> ");
+            String text = scanner.nextLine().trim();
+            try {
+                int memberId = Integer.parseInt(text);
+                if (memberId >= 1) {
+                    return memberId;
+                }
+            } catch (NumberFormatException e) {
+                // 아래 안내 출력
+            }
+            System.out.println("회원번호는 1 이상의 숫자로 입력해 주세요.");
+        }
+    }
+
+    // F-03 이름 입력. 엔터만 누르면 기존 값 유지
+    // TODO NFR-06: InputUtil로 교체
+    public String readNameOrKeep(String current) {
+        while (true) {
+            System.out.print("새 이름(엔터: 유지)> ");
+            String name = scanner.nextLine().trim();
+            if (name.isEmpty()) {
+                return current;
+            }
+            if (name.length() <= NAME_MAX) {
+                return name;
+            }
+            System.out.println("이름은 " + NAME_MAX + "자 이하로 입력해 주세요.");
+        }
+    }
+
+    // F-03 연락처 입력. 엔터만 누르면 기존 값 유지, 형식 오류는 다시 입력
+    // TODO NFR-06: InputUtil로 교체
+    public String readPhoneOrKeep(String current) {
+        while (true) {
+            System.out.print("새 연락처(010-0000-0000, 엔터: 유지)> ");
+            String phone = scanner.nextLine().trim();
+            if (phone.isEmpty()) {
+                return current;
+            }
+            if (PHONE.matcher(phone).matches()) {
+                return phone;
+            }
+            System.out.println("연락처 형식이 올바르지 않습니다. 하이픈 추가해서 010-0000-0000 형식으로 입력해 주세요.");
+        }
+    }
+
     // F-02 검색어 입력. 엔터만 누르면 빈 문자열(전체)
     public String readSearchKeyword() {
         System.out.print("이름 검색어(엔터: 전체)> ");
