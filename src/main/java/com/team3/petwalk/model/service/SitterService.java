@@ -1,25 +1,79 @@
 package com.team3.petwalk.model.service;
 
 import com.team3.petwalk.common.OrderConstants;
+import com.team3.petwalk.model.dao.MemberDAO;
 import com.team3.petwalk.model.dao.SitterDAO;
 import com.team3.petwalk.model.dto.SitterDTO;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
+import java.util.List;
 
-// (C) 시터 업무 규칙 검사. 규칙 위반은 걸린 조건을 메시지로 담아 IllegalStateException을 던진다 (NFR-07)
+// (C) 시터 업무 규칙 검사. 규칙 위반은 걸린 조건을 메시지로 담아 IllegalArgumentException을 던진다 (NFR-07)
+// 팀 공통: Controller는 IllegalArgumentException을 잡아 안내 후 관리 메뉴로 복귀한다
 public class SitterService {
     private final SitterDAO sitterDAO = new SitterDAO();
+    // MemberService는 SitterService를 필드로 갖고 있어 서로 new 하면 무한 순환(StackOverflowError) → A의 DAO를 직접 사용
+    private final MemberDAO memberDAO = new MemberDAO();
+
+    // F-09 등록 전 확인. 회원번호만 먼저 받아 바로 검사한다
+    public void checkRegistrable(int memberId) throws SQLException {
+        // #7 A의 회원 존재 확인. member 테이블 SQL은 직접 쓰지 않는다
+        if (!memberDAO.existsById(memberId)) {
+            throw new IllegalArgumentException("존재하지 않는 회원번호입니다.");
+        }
+        if (sitterDAO.existsByMemberId(memberId)) {
+            throw new IllegalArgumentException("이미 시터로 등록된 회원입니다.");
+        }
+    }
+
+    // F-09 저장 후 새 시터번호 반환
+    public int register(SitterDTO sitter) throws SQLException {
+        return sitterDAO.insert(sitter);
+    }
+
+    // F-10
+    public List<SitterDTO> findAll() throws SQLException {
+        return sitterDAO.findAll();
+    }
+
+    // F-10
+    public List<SitterDTO> findAvailable() throws SQLException {
+        return sitterDAO.findAvailable();
+    }
 
     // 시터 1명 조회 (단가·제재종료일·회원번호·이름·최대수용량). 없으면 예외
     // 사용처: F-11, F-12, F-13, F-14, F-15, F-16
     public SitterDTO findById(int sitterId) throws SQLException {
         SitterDTO sitter = sitterDAO.findById(sitterId);
         if (sitter == null) {
-            throw new IllegalStateException("존재하지 않는 시터번호입니다.");
+            throw new IllegalArgumentException("존재하지 않는 시터번호입니다.");
         }
         return sitter;
+    }
+
+    // F-11 정보 수정. 수용량을 수행중 건수보다 낮춰도 허용하므로 추가 검사 없음 (BR-07)
+    public void update(SitterDTO sitter) throws SQLException {
+        sitterDAO.update(sitter);
+    }
+
+    // F-11 제재 해제. 제재 중이 아닌 시터는 해제 대상이 아님 (BR-09)
+    public void releaseSuspension(int sitterId) throws SQLException {
+        SitterDTO sitter = findById(sitterId);
+        if (!isSuspended(sitter)) {
+            throw new IllegalArgumentException("제재 중인 시터가 아닙니다.");
+        }
+        sitterDAO.clearSuspension(sitterId);
+    }
+
+    // F-12 주문 이력이 없을 때만 삭제 (BR-10)
+    public void delete(int sitterId) throws SQLException {
+        findById(sitterId);
+        if (sitterDAO.countOrders(sitterId) > 0) {
+            throw new IllegalArgumentException("주문 이력이 있어 삭제할 수 없습니다.");
+        }
+        sitterDAO.delete(sitterId);
     }
 
     // 제재 중 = 제재종료일이 현재보다 뒤. F-10 매칭 가능 조건의 반대

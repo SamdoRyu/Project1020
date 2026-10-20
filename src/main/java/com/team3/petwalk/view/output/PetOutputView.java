@@ -50,6 +50,26 @@ public class PetOutputView {
         OutputUtil.printTable(headers, rows);
     }
 
+    // F-07 수정 전 현재 값 출력
+    public void printCurrent(PetDTO pet) {
+        OutputUtil.printMessage("[현재 정보]");
+        printList(List.of(pet));
+    }
+
+    // F-07
+    public void printUpdated() {
+        OutputUtil.printMessage("수정되었습니다.");
+    }
+
+    // F-08
+    public void printDeleted() {
+        OutputUtil.printMessage("삭제되었습니다.");
+    }
+
+    public void printDeleteCanceled() {
+        OutputUtil.printMessage("삭제를 취소했습니다.");
+    }
+
     // 업무 규칙 위반 안내 (NFR-07)
     public void printError(String message) {
         OutputUtil.printMessage(message);

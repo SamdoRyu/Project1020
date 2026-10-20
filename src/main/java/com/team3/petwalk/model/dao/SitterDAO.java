@@ -7,7 +7,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 // (C) sitter 테이블 SQL만 실행한다. 업무 규칙 판단은 Service에서 (NFR-02)
 public class SitterDAO {
@@ -32,6 +35,39 @@ public class SitterDAO {
         }
     }
 
+    // F-09 저장 후 새로 만들어진 시터번호를 돌려준다. suspended_until은 기본값 NULL
+    public int insert(SitterDTO sitter) throws SQLException {
+        String sql = """
+                INSERT INTO sitter (member_id, price_per_km, price_per_min, certified, max_capacity)
+                VALUES (?, ?, ?, ?, ?)
+                """;
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            pstmt.setInt(1, sitter.getMemberId());
+            pstmt.setInt(2, sitter.getPricePerKm());
+            pstmt.setInt(3, sitter.getPricePerMin());
+            pstmt.setBoolean(4, sitter.isCertified());
+            pstmt.setInt(5, sitter.getMaxCapacity());
+            pstmt.executeUpdate();
+            try (ResultSet rs = pstmt.getGeneratedKeys()) {
+                rs.next();
+                return rs.getInt(1);
+            }
+        }
+    }
+
+    // F-10 전체 시터
+    public List<SitterDTO> findAll() throws SQLException {
+        return findList(SELECT_WITH_NAME + " ORDER BY s.sitter_id");
+    }
+
+    // F-10 매칭 가능 시터 = 제재종료일이 없거나 이미 지난 시터
+    public List<SitterDTO> findAvailable() throws SQLException {
+        return findList(SELECT_WITH_NAME
+                + " WHERE s.suspended_until IS NULL OR s.suspended_until <= NOW()"
+                + " ORDER BY s.sitter_id");
+    }
+
     // 시터 1명 조회. 없으면 null
     public SitterDTO findById(int sitterId) throws SQLException {
         String sql = SELECT_WITH_NAME + " WHERE s.sitter_id = ?";
@@ -41,6 +77,57 @@ public class SitterDAO {
             try (ResultSet rs = pstmt.executeQuery()) {
                 return rs.next() ? toDTO(rs) : null;
             }
+        }
+    }
+
+    // F-11 정보 수정 (단가·자격증·수용량)
+    public int update(SitterDTO sitter) throws SQLException {
+        String sql = """
+                UPDATE sitter
+                   SET price_per_km = ?, price_per_min = ?, certified = ?, max_capacity = ?
+                 WHERE sitter_id = ?
+                """;
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, sitter.getPricePerKm());
+            pstmt.setInt(2, sitter.getPricePerMin());
+            pstmt.setBoolean(3, sitter.isCertified());
+            pstmt.setInt(4, sitter.getMaxCapacity());
+            pstmt.setInt(5, sitter.getSitterId());
+            return pstmt.executeUpdate();
+        }
+    }
+
+    // F-11 제재 해제 (BR-09)
+    public int clearSuspension(int sitterId) throws SQLException {
+        String sql = "UPDATE sitter SET suspended_until = NULL WHERE sitter_id = ?";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, sitterId);
+            return pstmt.executeUpdate();
+        }
+    }
+
+    // F-12 삭제 가능 여부 확인용 주문 수. 상태와 상관없이 전부 센다 (BR-10)
+    public int countOrders(int sitterId) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM walk_order WHERE sitter_id = ?";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, sitterId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                rs.next();
+                return rs.getInt(1);
+            }
+        }
+    }
+
+    // F-12 삭제
+    public int delete(int sitterId) throws SQLException {
+        String sql = "DELETE FROM sitter WHERE sitter_id = ?";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, sitterId);
+            return pstmt.executeUpdate();
         }
     }
 
@@ -77,6 +164,18 @@ public class SitterDAO {
             pstmt.setInt(2, sitterId);
             return pstmt.executeUpdate();
         }
+    }
+
+    private List<SitterDTO> findList(String sql) throws SQLException {
+        List<SitterDTO> sitters = new ArrayList<>();
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
+            while (rs.next()) {
+                sitters.add(toDTO(rs));
+            }
+        }
+        return sitters;
     }
 
     private SitterDTO toDTO(ResultSet rs) throws SQLException {

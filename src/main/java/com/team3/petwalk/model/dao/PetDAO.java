@@ -64,6 +64,60 @@ public class PetDAO {
         }
     }
 
+    // 반려동물 1마리 조회 (보호자 회원번호 포함). 없으면 null (F-07, 다른 팀원 제공용)
+    public PetDTO findById(int petId) throws SQLException {
+        String sql = SELECT_WITH_MEMBER + "WHERE p.pet_id = ?";
+
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, petId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                List<PetDTO> pets = toList(rs);
+                return pets.isEmpty() ? null : pets.get(0);
+            }
+        }
+    }
+
+    // F-07 반려동물 수정. 보호자(member_id)는 바꾸지 않는다
+    public int update(PetDTO pet) throws SQLException {
+        String sql = "UPDATE pet SET name = ?, breed = ?, weight = ?, activity_level = ? WHERE pet_id = ?";
+
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, pet.getName());
+            pstmt.setString(2, pet.getBreed());
+            pstmt.setBigDecimal(3, pet.getWeight());
+            pstmt.setInt(4, pet.getActivityLevel());
+            pstmt.setInt(5, pet.getPetId());
+            return pstmt.executeUpdate();
+        }
+    }
+
+    // F-08 삭제 가능 여부 확인용 주문 수. 상태와 상관없이 전부 센다 (BR-10)
+    public int countOrders(int petId) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM walk_order WHERE pet_id = ?";
+
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, petId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                rs.next();
+                return rs.getInt(1);
+            }
+        }
+    }
+
+    // F-08 반려동물 삭제
+    public int delete(int petId) throws SQLException {
+        String sql = "DELETE FROM pet WHERE pet_id = ?";
+
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, petId);
+            return pstmt.executeUpdate();
+        }
+    }
+
     private List<PetDTO> toList(ResultSet rs) throws SQLException {
         List<PetDTO> pets = new ArrayList<>();
         while (rs.next()) {
