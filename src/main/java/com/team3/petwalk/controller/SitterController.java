@@ -67,8 +67,22 @@ public class SitterController {
     }
 
     // F-11 시터 수정·제재 해제 (1.정보 수정 2.제재 해제)
-    private void update() {
-        // TODO
+    private void update() throws SQLException {
+        int sitterId = inputView.readSitterId();
+        SitterDTO sitter = sitterService.findById(sitterId);
+        outputView.printSitter(sitter);
+
+        if (inputView.readUpdateOption() == 1) {
+            sitter.setPricePerKm(inputView.readPricePerKm(sitter.getPricePerKm()));
+            sitter.setPricePerMin(inputView.readPricePerMin(sitter.getPricePerMin()));
+            sitter.setCertified(inputView.readCertified(sitter.isCertified()));
+            sitter.setMaxCapacity(inputView.readMaxCapacity(sitter.getMaxCapacity()));
+            sitterService.update(sitter);
+            outputView.printUpdated();
+        } else {
+            sitterService.releaseSuspension(sitterId);
+            outputView.printReleased();
+        }
     }
 
     // F-12 시터 삭제

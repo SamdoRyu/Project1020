@@ -80,6 +80,34 @@ public class SitterDAO {
         }
     }
 
+    // F-11 정보 수정 (단가·자격증·수용량)
+    public int update(SitterDTO sitter) throws SQLException {
+        String sql = """
+                UPDATE sitter
+                   SET price_per_km = ?, price_per_min = ?, certified = ?, max_capacity = ?
+                 WHERE sitter_id = ?
+                """;
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, sitter.getPricePerKm());
+            pstmt.setInt(2, sitter.getPricePerMin());
+            pstmt.setBoolean(3, sitter.isCertified());
+            pstmt.setInt(4, sitter.getMaxCapacity());
+            pstmt.setInt(5, sitter.getSitterId());
+            return pstmt.executeUpdate();
+        }
+    }
+
+    // F-11 제재 해제 (BR-09)
+    public int clearSuspension(int sitterId) throws SQLException {
+        String sql = "UPDATE sitter SET suspended_until = NULL WHERE sitter_id = ?";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, sitterId);
+            return pstmt.executeUpdate();
+        }
+    }
+
     // 시터의 특정 상태 주문 수 (F-15 수행중 주문 수, BR-07)
     public int countOrdersByStatus(int sitterId, String status) throws SQLException {
         String sql = "SELECT COUNT(*) FROM walk_order WHERE sitter_id = ? AND status = ?";

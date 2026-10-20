@@ -53,6 +53,20 @@ public class SitterService {
         return sitter;
     }
 
+    // F-11 정보 수정. 수용량을 수행중 건수보다 낮춰도 허용하므로 추가 검사 없음 (BR-07)
+    public void update(SitterDTO sitter) throws SQLException {
+        sitterDAO.update(sitter);
+    }
+
+    // F-11 제재 해제. 제재 중이 아닌 시터는 해제 대상이 아님 (BR-09)
+    public void releaseSuspension(int sitterId) throws SQLException {
+        SitterDTO sitter = findById(sitterId);
+        if (!isSuspended(sitter)) {
+            throw new IllegalArgumentException("제재 중인 시터가 아닙니다.");
+        }
+        sitterDAO.clearSuspension(sitterId);
+    }
+
     // 제재 중 = 제재종료일이 현재보다 뒤. F-10 매칭 가능 조건의 반대
     // 사용처: F-11 제재 해제(BR-09), F-13 주문 등록 시 제재 검사(BR-03)
     public boolean isSuspended(SitterDTO sitter) {

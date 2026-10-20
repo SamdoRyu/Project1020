@@ -44,8 +44,21 @@ public class SitterOutputView {
         OutputUtil.printTable(HEADERS, rows);
     }
 
+    // F-11 수정 전 현재 값
+    public void printSitter(SitterDTO sitter) {
+        OutputUtil.printTable(HEADERS, List.<String[]>of(toRow(sitter)));
+    }
+
     public void printRegistered(int sitterId) {
         OutputUtil.printMessage("시터가 등록되었습니다. (시터번호: " + sitterId + ")");
+    }
+
+    public void printUpdated() {
+        OutputUtil.printMessage("수정되었습니다.");
+    }
+
+    public void printReleased() {
+        OutputUtil.printMessage("제재가 해제되었습니다.");
     }
 
     // 업무 규칙 위반 안내 (NFR-07)
