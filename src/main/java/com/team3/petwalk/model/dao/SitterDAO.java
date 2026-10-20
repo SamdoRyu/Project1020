@@ -1,1 +1,94 @@
 package com.team3.petwalk.model.dao;
+
+import com.team3.petwalk.common.DBUtil;
+import com.team3.petwalk.model.dto.SitterDTO;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.time.LocalDateTime;
+
+// (C) sitter 테이블 SQL만 실행한다. 업무 규칙 판단은 Service에서 (NFR-02)
+public class SitterDAO {
+
+    // 이름은 member에만 있으므로 JOIN으로 가져온다
+    private static final String SELECT_WITH_NAME = """
+            SELECT s.sitter_id, s.member_id, m.name, s.price_per_km, s.price_per_min,
+                   s.certified, s.max_capacity, s.suspended_until
+              FROM sitter s
+              JOIN member m ON s.member_id = m.member_id
+            """;
+
+    // 회원의 시터 여부 (sitter.member_id UNIQUE)
+    public boolean existsByMemberId(int memberId) throws SQLException {
+        String sql = "SELECT 1 FROM sitter WHERE member_id = ?";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, memberId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+
+    // 시터 1명 조회. 없으면 null
+    public SitterDTO findById(int sitterId) throws SQLException {
+        String sql = SELECT_WITH_NAME + " WHERE s.sitter_id = ?";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, sitterId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                return rs.next() ? toDTO(rs) : null;
+            }
+        }
+    }
+
+    // 시터의 특정 상태 주문 수 (F-15 수행중 주문 수, BR-07)
+    public int countOrdersByStatus(int sitterId, String status) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM walk_order WHERE sitter_id = ? AND status = ?";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, sitterId);
+            pstmt.setString(2, status);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                rs.next();
+                return rs.getInt(1);
+            }
+        }
+    }
+
+    // 트랜잭션용(F-16): 호출한 쪽의 Connection을 쓰고 닫지 않는다 (NFR-05)
+    public LocalDateTime findSuspendedUntil(Connection conn, int sitterId) throws SQLException {
+        String sql = "SELECT suspended_until FROM sitter WHERE sitter_id = ?";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, sitterId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                return rs.next() ? rs.getObject("suspended_until", LocalDateTime.class) : null;
+            }
+        }
+    }
+
+    // 트랜잭션용(F-16): 호출한 쪽의 Connection을 쓰고 닫지 않는다 (NFR-05)
+    public int updateSuspendedUntil(Connection conn, int sitterId, LocalDateTime suspendedUntil) throws SQLException {
+        String sql = "UPDATE sitter SET suspended_until = ? WHERE sitter_id = ?";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setObject(1, suspendedUntil);
+            pstmt.setInt(2, sitterId);
+            return pstmt.executeUpdate();
+        }
+    }
+
+    private SitterDTO toDTO(ResultSet rs) throws SQLException {
+        SitterDTO sitter = new SitterDTO(
+                rs.getInt("sitter_id"),
+                rs.getInt("member_id"),
+                rs.getInt("price_per_km"),
+                rs.getInt("price_per_min"),
+                rs.getBoolean("certified"),
+                rs.getInt("max_capacity"),
+                rs.getObject("suspended_until", LocalDateTime.class)); // NULL이면 null
+        sitter.setMemberName(rs.getString("name"));
+        return sitter;
+    }
+}
