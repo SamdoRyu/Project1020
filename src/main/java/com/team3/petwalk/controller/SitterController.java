@@ -6,6 +6,7 @@ import com.team3.petwalk.view.input.SitterInputView;
 import com.team3.petwalk.view.output.SitterOutputView;
 
 import java.sql.SQLException;
+import java.util.List;
 
 // (C) 관리 메뉴 흐름만 담당한다. 업무 규칙 판단은 Service에서 (NFR-02)
 public class SitterController {
@@ -55,8 +56,14 @@ public class SitterController {
     }
 
     // F-10 시터 목록 (1.전체 2.매칭 가능 시터만)
-    private void list() {
-        // TODO
+    private void list() throws SQLException {
+        List<SitterDTO> sitters;
+        if (inputView.readListOption() == 1) {
+            sitters = sitterService.findAll();
+        } else {
+            sitters = sitterService.findAvailable();
+        }
+        outputView.printSitterList(sitters);
     }
 
     // F-11 시터 수정·제재 해제 (1.정보 수정 2.제재 해제)

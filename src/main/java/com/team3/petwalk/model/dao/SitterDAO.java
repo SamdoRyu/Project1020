@@ -9,6 +9,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 // (C) sitter 테이블 SQL만 실행한다. 업무 규칙 판단은 Service에서 (NFR-02)
 public class SitterDAO {
@@ -52,6 +54,18 @@ public class SitterDAO {
                 return rs.getInt(1);
             }
         }
+    }
+
+    // F-10 전체 시터
+    public List<SitterDTO> findAll() throws SQLException {
+        return findList(SELECT_WITH_NAME + " ORDER BY s.sitter_id");
+    }
+
+    // F-10 매칭 가능 시터 = 제재종료일이 없거나 이미 지난 시터
+    public List<SitterDTO> findAvailable() throws SQLException {
+        return findList(SELECT_WITH_NAME
+                + " WHERE s.suspended_until IS NULL OR s.suspended_until <= NOW()"
+                + " ORDER BY s.sitter_id");
     }
 
     // 시터 1명 조회. 없으면 null
@@ -99,6 +113,18 @@ public class SitterDAO {
             pstmt.setInt(2, sitterId);
             return pstmt.executeUpdate();
         }
+    }
+
+    private List<SitterDTO> findList(String sql) throws SQLException {
+        List<SitterDTO> sitters = new ArrayList<>();
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
+            while (rs.next()) {
+                sitters.add(toDTO(rs));
+            }
+        }
+        return sitters;
     }
 
     private SitterDTO toDTO(ResultSet rs) throws SQLException {
