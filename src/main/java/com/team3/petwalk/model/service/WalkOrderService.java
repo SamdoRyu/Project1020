@@ -4,6 +4,7 @@ import com.team3.petwalk.common.DBUtil;
 import com.team3.petwalk.common.FeeCalculator;
 import com.team3.petwalk.common.OrderConstants;
 import com.team3.petwalk.model.dao.WalkOrderDAO;
+import com.team3.petwalk.model.dto.PetDTO;
 import com.team3.petwalk.model.dto.SitterDTO;
 import com.team3.petwalk.model.dto.WalkOrderDTO;
 
@@ -22,19 +23,19 @@ public class WalkOrderService {
 
     // F-13 산책 주문 등록. 1~5 중 걸린 조건을 안내하고 [복귀] (NFR-07). 반환값: 생성된 주문번호
     public int register(int petId, int sitterId, LocalDateTime walkAt, String feeType) throws SQLException {
-        // 1. 시터 존재 확인. 없으면 SitterService가 안내 문구를 담아 던진다 (C 제공 #12)
+        // 1. 시터·반려동물 존재 확인. 없으면 각 Service가 안내 문구를 담아 던진다 (C 제공 #12, B 제공 #10)
         SitterDTO sitter = sitterService.findById(sitterId);
-        // TODO #10: B의 반려동물 1마리 조회(findById)가 나오면 연결
-        //   1. 반려동물 존재 확인
-        //      PetDTO pet = petService.findById(petId);  → null이면 "존재하지 않는 동물번호입니다."
+        PetDTO pet = petService.findById(petId);
 
         // 2. 시터가 제재 중이 아닌지 (BR-03). 제재 검사는 등록 때만 한다
         if (sitterService.isSuspended(sitter)) {
             throw new IllegalArgumentException("제재 중인 시터라 새 주문을 받을 수 없습니다.");
         }
 
-        // TODO #10: 3. 시터의 회원번호 ≠ 반려동물의 보호자 회원번호 (BR-03)
-        //   if (sitter.getMemberId() == pet.getMemberId()) → "시터 본인의 반려동물은 주문할 수 없습니다."
+        // 3. 시터의 회원번호 ≠ 반려동물의 보호자 회원번호 (BR-03)
+        if (sitter.getMemberId() == pet.getMemberId()) {
+            throw new IllegalArgumentException("시터 본인의 반려동물은 주문할 수 없습니다.");
+        }
 
         // 4. 그 반려동물에 진행 중(대기·수행중) 주문이 없는지 (BR-04, B 제공 #10)
         if (petService.hasActiveOrder(petId)) {
@@ -46,12 +47,9 @@ public class WalkOrderService {
             throw new IllegalArgumentException("산책일시는 현재 이후여야 합니다.");
         }
 
-        // TODO #10: 1·3단계 연결 후 아래 throw를 지우고 저장
-        //   반려동물 확인 없이 저장하면 없는 동물번호는 FK 오류(NFR-10)로 빠지고, BR-03 본인 검사도 빠진다
-        //   6. 요금방식에 맞는 시터의 현재 단가를 주문에 복사해 대기 상태로 저장 (BR-02)
-        //   int appliedPrice = OrderConstants.FEE_TYPE_DISTANCE.equals(feeType) ? sitter.getPricePerKm() : sitter.getPricePerMin();
-        //   return walkOrderDAO.insert(petId, sitterId, walkAt, feeType, appliedPrice);
-        throw new IllegalStateException("주문 등록은 반려동물 조회(#10 findById) 연결 후 사용할 수 있습니다.");
+        // 6. 요금방식에 맞는 시터의 현재 단가를 주문에 복사해 대기 상태로 저장 (BR-02)
+        int appliedPrice = OrderConstants.FEE_TYPE_DISTANCE.equals(feeType) ? sitter.getPricePerKm() : sitter.getPricePerMin();
+        return walkOrderDAO.insert(petId, sitterId, walkAt, feeType, appliedPrice);
     }
 
     // F-14 1. 전체
