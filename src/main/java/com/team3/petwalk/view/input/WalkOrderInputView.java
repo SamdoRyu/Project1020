@@ -4,6 +4,10 @@ import com.team3.petwalk.common.InputUtil;
 import com.team3.petwalk.common.OrderConstants;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.time.format.ResolverStyle;
 
 // 입력은 공통 InputUtil을 쓴다. Scanner는 InputUtil의 하나만 공유 (NFR-06, #8)
 public class WalkOrderInputView {
@@ -13,6 +17,10 @@ public class WalkOrderInputView {
             OrderConstants.STATUS_COMPLETED, OrderConstants.STATUS_CANCELED};
 
     private static final BigDecimal MAX_DISTANCE_KM = new BigDecimal("999.99");
+
+    // STRICT: 2026-02-30처럼 없는 날짜를 거부한다 (STRICT에서는 연도를 uuuu로 써야 함)
+    private static final DateTimeFormatter WALK_AT_FORMAT =
+            DateTimeFormatter.ofPattern("uuuu-MM-dd HH:mm").withResolverStyle(ResolverStyle.STRICT);
 
     // 메뉴 번호 입력. 검증 없이 문자열로 돌려주고, 없는 번호는 Controller switch의 default에서 처리
     public String readMenu() {
@@ -37,6 +45,30 @@ public class WalkOrderInputView {
     // F-14 시터별 (NFR-09: 시터번호로 표기)
     public int readSitterId() {
         return readPositiveNumber("시터번호> ");
+    }
+
+    // F-13 (NFR-09: 동물번호로 표기)
+    public int readPetId() {
+        return readPositiveNumber("동물번호> ");
+    }
+
+    // F-13 산책일시. 없는 날짜(2월 30일 등)도 형식 오류로 본다
+    // TODO NFR-06: InputUtil에 날짜 입력이 생기면 교체
+    public LocalDateTime readWalkAt() {
+        while (true) {
+            String input = InputUtil.readLine("산책일시(yyyy-MM-dd HH:mm)> ");
+            try {
+                return LocalDateTime.parse(input, WALK_AT_FORMAT);
+            } catch (DateTimeParseException e) {
+                System.out.println("yyyy-MM-dd HH:mm 형식으로 입력해 주세요. (예: 2026-10-25 14:30)");
+            }
+        }
+    }
+
+    // F-13 요금방식: 번호를 받아 '거리' / '시간'으로 돌려준다
+    public String readFeeType() {
+        return readNumberInRange("요금방식> ", 1, 2) == 1
+                ? OrderConstants.FEE_TYPE_DISTANCE : OrderConstants.FEE_TYPE_TIME;
     }
 
     // F-15·F-16 (NFR-09: 주문번호로 표기)
